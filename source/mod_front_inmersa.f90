@@ -108,7 +108,7 @@ contains
           !
        end do
        !
-       yu = 9.0_DBL
+       yu = 5.0_DBL
        xv = 0.05_DBL
        hx = 0.1_DBL
        hy = 1.0_DBL
