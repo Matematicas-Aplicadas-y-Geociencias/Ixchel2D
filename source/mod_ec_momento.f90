@@ -1205,7 +1205,7 @@ contains
     ! corresponde **
     gammad = ( gamma_momento(ii+1,jj) * gamma_momento(ii+1,jj-1) ) / &
          &(gamma_momento(ii+1,jj)*(1._DBL-feypo(jj-1))+gamma_momento(ii+1,jj-1)*feypo(jj-1))
-    gammai = ( gamma_momento(ii,jj+1) * gamma_momento(ii,jj) ) / &
+    gammai = ( gamma_momento(ii,jj) * gamma_momento(ii,jj-1) ) / &
          &(gamma_momento(ii,jj)*(1._DBL-feypo(jj-1))+gamma_momento(ii,jj-1)*feypo(jj-1))
     !
     gammas = gammai*gammad / (gammad * (1._DBL-fexpo(ii)) + gammai * fexpo(ii))         
