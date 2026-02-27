@@ -78,7 +78,120 @@ contains
     !xmax = 0
     !ymax = 0
     !
-    if( opcion == 'rectn' )then
+    if( opcion == 'horno' )then
+       !
+       ! Rectangulo con centro en xv, yv y lado hh
+       !
+       yu = 5.0_DBL
+       xv = 1.5_DBL
+       hx = 2.8_DBL
+       hy = 9.8_DBL
+       !
+       do jj = 1, nj+1
+          !
+          if( yu-(hy/2.0_DBL) <= yp(jj) .and. yp(jj) <= yu+(hy/2.0_DBL) )then
+                !
+             do ii = 1, mi+1
+                if( xv-(hx/2.0_DBL) <= xp(ii) .and. xp(ii) <= xv+(hx/2.0_DBL) )then
+                   !
+                   gamma_momeno(ii,jj) = 10.0e20_DBL
+                   !
+		   gamma_energ(ii,jj) = 10.0e-10_DBL
+		   !
+                   fuente_lin_t(ii,jj) =-10.0e40_DBL
+                   fuente_con_t(ii,jj) = 10.0e40_DBL*10.0e-5_DBL
+                   !
+                end if
+                !
+             end do
+             !
+          end if
+          !
+       end do
+       !
+       yu = 5.0_DBL
+       xv = 0.05_DBL
+       hx = 0.1_DBL
+       hy = 1.0_DBL
+       !
+       do jj = 1, nj+1
+          if( yu-(hy/2.0_DBL) <= yp(jj) .and. yp(jj) <= yu+(hy/2.0_DBL) )then
+                !
+             do ii = 1, mi+1
+                if( xv-(hx/2.0_DBL) <= xp(ii) .and. xp(ii) <= xv+(hx/2.0_DBL) )then
+                   gamma_momeno(ii,jj) = sqrt(7.0_DBL/10.0e7_DBL)*5.0_DBL
+                   !gamma_momeno(ii,jj) = 10.0e6_DBL
+                   !
+                   fuente_lin_t(ii,jj) =-10.0e40_DBL
+                   fuente_con_t(ii,jj) = 10.0e40_DBL*1.0_DBL
+                   !
+                end if
+                !
+             end do
+             !
+          end if
+          !
+       end do
+       !
+       ! Cavidad (hornito)
+       !
+       yu = 8.5_DBL
+       xv = 2.4_DBL
+       hx = 0.9_DBL
+       hy = 1.0_DBL
+       !
+       do jj = 1, nj+1
+          if( yu-(hy/2.0_DBL) <= yp(jj) .and. yp(jj) <= yu+(hy/2.0_DBL) )then
+                !
+             do ii = 1, mi+1
+                if( xv-(hx/2.0_DBL) <= xp(ii) .and. xp(ii) <= xv+(hx/2.0_DBL) )then
+                   !
+                   gamma_momeno(ii,jj) = sqrt(7.0_DBL/2.94e8_DBL)
+                   gamma_energ(ii,jj)  = sqrt(1.0_DBL/(7.0_DBL*2.94e8_DBL))
+                   ! gamma_momeno(ii,jj) = 10.0e6_DBL
+                   !
+                   fuente_lin_t(ii,jj) = 0.0_DBL
+                   fuente_con_t(ii,jj) = 0.0_DBL
+                   !
+                end if
+                !
+             end do
+             !
+          end if
+          !
+       end do
+       !
+       ! Pared de la cavidad (hornito)
+       !
+       yu = 8.5_DBL
+       xv = 2.875_DBL
+       hx = 0.05_DBL
+       hy = 1.0_DBL
+       !
+       do jj = 1, nj+1
+          !
+          if( yu-(hy/2.0_DBL) <= yp(jj) .and. yp(jj) <= yu+(hy/2.0_DBL) )then
+             !
+             do ii = 1, mi+1
+                !
+                if( xv-(hx/2.0_DBL) <= xp(ii) .and. xp(ii) <= xv+(hx/2.0_DBL) )then
+                   !
+                   !
+                   gamma_momeno(ii,jj) = 10.0e20_DBL
+                   gamma_energ(ii,jj)  = 1.0e-3_DBL
+                   !
+                   fuente_lin_t(ii,jj) = 0.0_DBL
+                   fuente_con_t(ii,jj) = 0.0_DBL
+                   !
+                end if
+                !
+             end do
+             !
+          end if
+          !
+       end do
+    !
+    else if( opcion == 'rectn' )then
        !
        ! Rectangulo con centro en xv, yv y lado hh
        !
