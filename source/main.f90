@@ -325,7 +325,7 @@ PROGRAM IXCHEL2D
   !
   ! Construcci\'on de s\'olidos con frontera inmersa 
   !
-  call definir_cuerpo(gamma_momen, gamma_energ, 'rectn')
+  call definir_cuerpo(gamma_momen, gamma_energ, 'horno')
   !
   !----------------------------------------------
   !
@@ -717,13 +717,13 @@ PROGRAM IXCHEL2D
               error = 0.0_DBL
               !$acc parallel loop gang collapse(2) reduction(+:error) ! async(stream1)
               calculo_diferencias_dv: do jj=2, nj-1
-                do ii = 2, mi
+                 do ii = 2, mi
 
-                    error = error + (v(ii,jj)-fv(ii,jj))*(v(ii,jj)-fv(ii,jj))
+                    error = error + dabs(v(ii,jj)-fv(ii,jj))*deltaxp(ii)*deltayv(jj)
 
                  end do
               end do calculo_diferencias_dv
-              error = sqrt(error)
+              ! error = sqrt(error)
               !
               ! Criterio de convergencia de la velocidad
               !
@@ -903,18 +903,18 @@ PROGRAM IXCHEL2D
               calculo_dif_corr_pres: do jj=2, nj
                  do ii=2, mi
 
-                    error = error + (corr_pres(ii,jj)-fcorr_pres(ii,jj))*&
-                         (corr_pres(ii,jj)-fcorr_pres(ii,jj))
+                    error = error + dabs(corr_pres(ii,jj)-fcorr_pres(ii,jj))*&
+                         & deltaxp(ii)*deltayp(jj)
 
                  end do
               end do calculo_dif_corr_pres
-              error=sqrt(error)
+              ! error=sqrt(error)
               !
               !$acc parallel loop gang collapse(2) reduction(+:maxbo)
               calculo_dif_maxbo: do jj=2, nj
                  do ii=2, mi
 
-                    maxbo = maxbo + b_o(ii,jj)*b_o(ii,jj)
+                    maxbo = maxbo + dabs(b_o(ii,jj))*deltaxp(ii)*deltayp(jj)
                     
                  end do
               end do calculo_dif_maxbo
@@ -1145,10 +1145,11 @@ PROGRAM IXCHEL2D
               !$acc parallel loop gang collapse(2) reduction(+:error)
               calculo_diferencias_dtemp: do jj = 2, nj
                  do ii = 2, mi
-                    error = error + (temp(ii,jj)-ftemp(ii,jj))*(temp(ii,jj)-ftemp(ii,jj))
+                    error = error + dabs(temp(ii,jj)-ftemp(ii,jj))*&
+                         & deltaxp(ii)*deltayp(jj)
                  end do
               end do calculo_diferencias_dtemp
-              error = sqrt(error)
+              ! error = sqrt(error)
               !
               !
               !------------------------------------------
@@ -1208,10 +1209,11 @@ PROGRAM IXCHEL2D
            !$acc parallel loop collapse(2) reduction(+:residuo) !async(stream1)
            calculo_maximo_residuou: do jj=2, nj
               do ii = 2, mi-1
-                 residuo = residuo + Resu(ii,jj)*Resu(ii,jj)
+                 residuo = residuo + dabs(Resu(ii,jj))*deltaxu(ii)*deltayp(jj)
+                 ! residuo = residuo + Resu(ii,jj)*Resu(ii,jj)
               end do
            end do calculo_maximo_residuou
-           residuo = sqrt(residuo)
+           ! residuo = sqrt(residuo)
            !
            !$acc wait
            if ( maxbo<conv_paso .and. residuo<conv_resi)then
@@ -1373,7 +1375,8 @@ PROGRAM IXCHEL2D
         ! sample  = m//ce//de//un//dec
         archivo = 'n'//trim(njc)//'m'//trim(mic)//'R'//trim(Rec)//'/t_'//m//ce//de//un//dec//'.vtk'
         call postproceso_bin(xu,yv,xp,yp,u,v,pres,temp,b_o,Rec)
-        CALL postproceso_vtk(xp,yp,uf,vf,pres,temp,b_o,archivo)
+        call postproceso_vtk(xp,yp,uf,vf,pres,temp,b_o,archivo)
+        ! CALL postproceso_vtk(xp,yp,uf,vf,pres,temp,b_o,archivo)
         !
      end if ! Postprocesar
      !
