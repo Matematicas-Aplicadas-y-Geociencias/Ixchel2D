@@ -45,6 +45,8 @@ contains
        &entrada_tp,&
        &flujo_ini,&
        &tempe_ini,&
+       &postpro,&
+       &fron_inm,&
        &directorio&
        &)
        !
@@ -56,13 +58,14 @@ contains
     CHARACTER(len=28):: entrada_u,entrada_v,entrada_tp
     CHARACTER(len=36):: directorio
     character(len=8) :: flujo_ini, tempe_ini
+    logical          :: postpro, fron_inm
     !
     ! Se escribe la informaci\'on con la que se realiza la ejecuci\'on que
     ! produce los archivos de salida en el directorio nxxxmxxxRxxx/
     ! Esto ayuda a detectar errores de ejecuci\'on por la ausencia de este
     ! directorio
     !
-    OPEN(unit=10, file=directorio)
+    open(unit=10, file=directorio)
       write (10,*) 'numero de Rayleigh                    ', Ra
       write (10,*) 'numero de Prandtl                     ', Pr
       write (10,*) 'incremento de tiempo                  ', dt
@@ -84,7 +87,9 @@ contains
       write (10,*) 'archivo de entrada para t y p         ', entrada_tp
       write (10,*) 'opcion de flujo inicial               ', flujo_ini
       write (10,*) 'opcion de temperatura inicial         ', tempe_ini
-    CLOSE(unit=10)
+      write (10,*) 'opcion de postproceso                 ', postpro
+      write (10,*) 'opcion de frontera inmersa            ', fron_inm
+    close(unit=10)
     !
     !
   end subroutine postprocesa_parametros
@@ -268,6 +273,7 @@ contains
        do j =1, nj+1
           do i =1, mi+1
              write(78) real(presso(i,j))
+             ! write(78) real(bo(i,j))
           end do
        end do
     end do
