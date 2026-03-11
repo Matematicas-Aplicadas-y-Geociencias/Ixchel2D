@@ -1,11 +1,12 @@
 !
 ! M\'odulo de frontera  inmersa
 !
-! Este m\'odulo contiene las subrutinas que permiten incluir s\'olidos en el dominio del fluido 
+! Este m\'odulo contiene las subrutinas que permiten incluir s\'olidos en el dominio
+! del fluido.
 ! Se utiliza la media geom\'etrica de los coeficientes de difusi\'on en las caras de los
 ! vol\'umenes de control como se describe en Patankar 1987.
 !
-! Autor: J.C. Cajas
+! Autor: J.C. Cajas, K.Figueroa
 !
 module frontera_inmersa
   !
@@ -19,11 +20,13 @@ module frontera_inmersa
   use ec_momento, only : au, av  
   use ec_momento, only : fuente_con_u, fuente_lin_u
   use ec_momento, only : fuente_con_v, fuente_lin_v
+  use ec_momento, only : gamma_momen
   !
   ! Variables para fijar temperatura de las fronteras inmersas
   !
   use ec_energia, only : fuente_con_t, fuente_lin_t
   use ec_energia, only : gamma_energ
+  !
   implicit none
   !
   ! Interfaces para poder usar funciones como argumentos en subrutinas
@@ -42,6 +45,94 @@ module frontera_inmersa
   end interface
   !  
 contains
+  !
+  !*******************************************************************
+  !
+  ! lectura_cuerpo
+  !
+  ! Subrutina que abre el archivo de configuraci'on de fronteras inmersas.
+  ! Se lee el n\'umero de archivos que definen las fronteras inmersas y
+  ! sus nombres. Para cada uno se definen las propiedades indicadas
+  !
+  !*******************************************************************  
+  !
+  subroutine lectura_cuerpo()
+    !
+    implicit none
+    !
+    integer :: num_archivos   ! n'umero de archivos para definir la front. inmersa
+    !
+    character(len=64) :: archivo ! nombre del archivo a lee
+    !r
+    integer :: kk
+    !
+    open(82, file='front_inmersa.dat')
+    !
+    read(82) num_archivos
+    !
+    do kk=1, num_archivos
+       !
+       read(82) archivo
+       !
+       call define_cuerpo(archivo)
+       !
+    end do
+    !
+    close(82)
+    !
+  end subroutine lectura_cuerpo
+  !
+  !*******************************************************************
+  !
+  ! definir_cuerpo
+  !
+  ! Subrutina que abre el archivo de propiedades que definen los cuerpos
+  ! para las fronteras inmersas. Se leen los 'indices ii, jj y las
+  ! propiedades gamma_momen, gamma_energ, fuente_lin_t, fuente_con_t
+  !
+  !*******************************************************************
+  !
+  subroutine define_cuerpo(archivoo)
+    !
+    implicit none
+    !
+    character(len=64), intent(in) :: archivoo ! nombre del archivo de configuraci\'on
+    !
+    integer   :: num_puntos    ! n\'umero de puntos de la frontera inmersa
+    integer   :: nn            ! enteros para iteraciones
+    !
+    ! Variables auxiliares para escribir las propiedades
+    !
+    real(kind=DBL) :: gam_mom, gam_ene, fue_con, fue_lin
+    !
+    integer   :: ii,jj
+    !
+    !------------------------
+    !
+    ! Se abre el archivo de configuraci'on
+    !
+    open(81, file=trim(archivoo))
+    !
+    ! Se lee el n'umero de puntos en el archivo
+    !
+    read(81) num_puntos
+    !
+    ! Se leen los puntos de la frontera inmersa
+    !
+    do nn = 1, num_puntos
+       !
+       read(81) ii, jj, gam_mom, gam_ene, fue_con, fue_lin
+       gamma_momen(ii,jj) = gam_mom
+       gamma_energ(ii,jj) = gam_ene
+       !
+       fuente_con_t(ii,jj) = fue_con
+       fuente_lin_t(ii,jj) = fue_lin
+       !
+    end do
+    !
+    close(81)
+    !
+  end subroutine define_cuerpo
   !
   !*******************************************************************
   !
