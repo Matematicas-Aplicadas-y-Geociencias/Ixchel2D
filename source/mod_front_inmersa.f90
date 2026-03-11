@@ -68,11 +68,11 @@ contains
     !
     open(82, file='front_inmersa.dat')
     !
-    read(82) num_archivos
+    read(82,*) num_archivos
     !
     do kk=1, num_archivos
        !
-       read(82) archivo
+       read(82,*) archivo
        !
        call define_cuerpo(archivo)
        !
@@ -121,7 +121,7 @@ contains
     !
     do nn = 1, num_puntos
        !
-       read(81) ii, jj, gam_mom, gam_ene, fue_con, fue_lin
+       read(81,*) ii, jj, gam_mom, gam_ene, fue_con, fue_lin
        gamma_momen(ii,jj) = gam_mom
        gamma_energ(ii,jj) = gam_ene
        !

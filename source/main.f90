@@ -80,8 +80,9 @@ PROGRAM IXCHEL2D
   !
   ! Variables auxiliares para bucles y n\'umero de iteraciones
   !
-  IMPLICIT NONE
-  INCLUDE 'omp_lib.h'
+  implicit none
+  include  'omp_lib.h'
+  !
   INTEGER :: itera_total,itera,itera_inicial,i_1,paq_itera,itermax
   integer :: iter_ecuaci, iter_ecuaci_max
   integer :: iter_simple, iter_simple_max
@@ -92,14 +93,24 @@ PROGRAM IXCHEL2D
   !
   ! Variables para los archivos de la entrada de datos
   !
-  CHARACTER(len=28) :: entrada_u,entrada_v,entrada_tp
-  CHARACTER(len=36) :: directorio
+  character(len=28) :: entrada_u,entrada_v,entrada_tp
+  character(len=36) :: directorio
   character(len=7)  :: adimen
+  !
+  ! Variables para los archivos de postproceso
+  !
+  character(len=46) :: archivo=repeat(' ',46)
+  logical           :: postprocesar = .false.
   !
   ! Variables para opciones de inicializaci\'on
   !
   character(len=8)  :: flujo_ini, tempe_ini
-  !*******************************************
+  !
+  ! Variables para opci'on de frontera inmersa
+  !
+  logical           :: front_inmersa = .false.
+  !
+  ! *******************************************
   !
   REAL(kind=DBL), DIMENSION(mi+1,nj+1) :: entropia_calor,entropia_viscosa,entropia,gamma_t
   REAL(kind=DBL) :: temp_med,nusselt0,nusselt1,entropia_int,temp_int,gamma_s,residuo,error
@@ -115,8 +126,6 @@ PROGRAM IXCHEL2D
   real(kind=DBL), dimension(mi+1,nj+1) :: AI, AC, AD, Rx
   real(kind=DBL), dimension(nj+1,mi+1) :: BS, BC, BN, Ry
   !
-  !
-  !
   REAL(kind=DBL)   :: tiempo,tiempo_inicial,dt,Ra,Pr,Ri_1
   REAL(kind=DBL)   :: a_ent,lambda_ent
   CHARACTER(len=1) :: dec,un,de,ce,m
@@ -124,8 +133,6 @@ PROGRAM IXCHEL2D
   CHARACTER(len=6) :: Rec=repeat(' ',6)
   CHARACTER(len=5) :: sample
 
-  CHARACTER(len=46):: archivo=repeat(' ',46)
-  LOGICAL          :: res_fluido_u, postprocesar
   !****************************************
   !Variables de caracterizaci'on del fluido
   REAL(kind=DBL) :: temp_ref,visc_cin,dif_term,cond_ter,cons_gra
@@ -187,6 +194,7 @@ PROGRAM IXCHEL2D
   read (10,*) flujo_ini       ! opci'on de flujo inicial
   read (10,*) tempe_ini       ! opci'on de temperatura inicial
   read (10,*) postprocesar    ! variable booleana que indica si hay postproceso
+  read (10,*) front_inmersa   ! variable booleana que indica si hay frontera inmersa
   CLOSE(unit=10)
   !
   write(*,*) "Finaliza lectura de archivo de par'ametros"
@@ -271,6 +279,8 @@ PROGRAM IXCHEL2D
        &entrada_tp,&
        &flujo_ini,&
        &tempe_ini,&
+       &postprocesar,&
+       &front_inmersa,&
        &directorio)
   ! ----------------------------------------------------------------
   !
