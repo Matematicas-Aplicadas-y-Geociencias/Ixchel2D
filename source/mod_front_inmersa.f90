@@ -115,18 +115,18 @@ contains
     !
     ! Se lee el n'umero de puntos en el archivo
     !
-    read(81) num_puntos
+    read(81,*) num_puntos
     !
     ! Se leen los puntos de la frontera inmersa
     !
     do nn = 1, num_puntos
        !
        read(81,*) ii, jj, gam_mom, gam_ene, fue_con, fue_lin
-       gamma_momen(ii,jj) = gam_mom
-       gamma_energ(ii,jj) = gam_ene
+       gamma_momen(ii,jj) = real(gam_mom,DBL)
+       gamma_energ(ii,jj) = real(gam_ene,DBL)
        !
-       fuente_con_t(ii,jj) = fue_con
-       fuente_lin_t(ii,jj) = fue_lin
+       fuente_con_t(ii,jj) = real(fue_con,DBL)
+       fuente_lin_t(ii,jj) = real(fue_lin,DBL)
        !
     end do
     !

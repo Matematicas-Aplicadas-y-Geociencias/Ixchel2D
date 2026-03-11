@@ -65,6 +65,7 @@ PROGRAM IXCHEL2D
   !
   ! Rutina que determina viscosidades para fronteras inmersas
   !
+  use frontera_inmersa, only : lectura_cuerpo
   use frontera_inmersa, only : definir_cuerpo
   use frontera_inmersa, only : cond_front_inmersa
   !
@@ -333,9 +334,13 @@ PROGRAM IXCHEL2D
   call ini_frontera_uv()
   call ini_frontera_t()
   !
+  ! ------------------------------------------------
+  !
   ! Construcci\'on de s\'olidos con frontera inmersa 
   !
-  call definir_cuerpo(gamma_momen, gamma_energ, 'horno')
+  if( front_inmersa ) call lectura_cuerpo()
+  !
+  ! call definir_cuerpo(gamma_momen, gamma_energ, 'horno')
   !
   !----------------------------------------------
   !
