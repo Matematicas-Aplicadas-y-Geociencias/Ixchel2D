@@ -406,8 +406,8 @@ class MeshShapeViewer:
                 
                 # Write data
                 for point in points:
-                    i = point['i']
-                    j = point['j']
+                    i = point['i']+1
+                    j = point['j']+1
                     gamma_momen = point.get('gamma_momen', '')
                     gamma_energ = point.get('gamma_energ', '')
                     fuente_con_t = point.get('fuente_con_t', '')
