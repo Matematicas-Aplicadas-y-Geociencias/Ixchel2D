@@ -12,7 +12,39 @@ module postproceso
   !
   implicit none
   !
+  type tipo_promedio_perfil
+     !
+     ! Estructura de datos para calcular cantidades promedio en cortes horizontales
+     ! o verticales. Se crea una estructura r\'igida con capacidad de almacenar 20
+     ! cortes. Si se necesitan m'as hay que modificar la dimensi'on del arreglo
+     ! posicion del tipo
+     ! 
+     character(len=5)                :: orienta     ! Orientacion (horiz/verti)
+     integer                         :: nposi       ! n'umero de posiciones
+     real(kind=DBL), dimension(15,2) :: valor_prom  ! posicion,cantidad promediada
+     integer, dimension(15)          :: indi_posi   ! indices entero de la posicion
+     !
+  end type tipo_promedio_perfil
+  !
 contains
+  !-----------------------------------------------------------------------------
+  !
+  ! inicializa_promedio_perfil
+  !
+  ! Esta subrutina inicializa la estructura de datos promedio_perfil
+  !
+  subroutine inicializa_promedio_perfil(prom_perf)
+    !
+    implicit none
+    !
+    class( tipo_promedio_perfil ), intent(inout) :: prom_perf
+    !
+    prom_perf % orienta    = 'aaaaz'
+    prom_perf % nposi      = -2
+    prom_perf % indi_posi  = -2
+    prom_perf % valor_prom(:,:) = -1.0_DBL
+    !
+  end subroutine inicializa_cond_front
   !
   !************************************************************
   !
