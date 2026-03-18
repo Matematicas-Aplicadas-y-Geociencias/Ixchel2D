@@ -933,7 +933,7 @@ PROGRAM IXCHEL2D
                     
                  end do
               end do calculo_dif_maxbo
-              maxbo = sqrt(maxbo)
+              ! maxbo = sqrt(maxbo)
               !
               !-----------------------------------------------------
               !
@@ -1232,8 +1232,8 @@ PROGRAM IXCHEL2D
            !
            !$acc wait
            if ( maxbo<conv_paso .and. residuo<conv_resi)then
-              iter_simple = 0
               write(102,*) 'SIMPLE', iter_simple, maxbo, residuo
+              iter_simple = 0
               exit
            else if ( iter_simple > iter_simple_max ) then
               iter_simple = 0
