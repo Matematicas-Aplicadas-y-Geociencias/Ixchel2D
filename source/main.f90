@@ -77,7 +77,7 @@ PROGRAM IXCHEL2D
   ! 
   use postproceso, only  : nusselt_promedio_y, postproceso_vtk
   use postproceso, only  : postproceso_bin, entero_caracter
-  use postproceso, only  : postprocesa_parametros
+  use postproceso, only  : postprocesa_parametros, postpro_promedio
   !
   ! Variables auxiliares para bucles y n\'umero de iteraciones
   !
@@ -96,6 +96,7 @@ PROGRAM IXCHEL2D
   !
   character(len=28) :: entrada_u,entrada_v,entrada_tp
   character(len=36) :: directorio
+  character(len=36) :: file_name
   character(len=7)  :: adimen
   !
   ! Variables para los archivos de postproceso
@@ -1279,6 +1280,14 @@ PROGRAM IXCHEL2D
         end if
         !*********************************
         tiempo   = tiempo_inicial+itera*dt
+        file_name = 'temp_n'//trim(njc)//'m'//trim(mic)//'_R'&
+                &//trim(Rec)//'.dat'
+        !
+        !*********************************
+        if( mod(itera,1000)==0 )then
+            call postpro_promedio('horzn', tiempo, Rec, temp, file_name)
+        end if
+        !*********************************
         !
         !$acc parallel loop gang collapse(2) !async(stream1)
         do jj=1, nj+1

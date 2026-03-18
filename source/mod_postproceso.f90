@@ -8,9 +8,11 @@
 !
 module postproceso
   !
-  use malla, only :  mi, nj, DBL
+  use malla, only      :  mi, nj, DBL, deltaxp, xp, yp
   !
   implicit none
+  !
+  integer :: num_integrales
   !
   type tipo_promedio_perfil
      !
@@ -25,6 +27,12 @@ module postproceso
      integer, dimension(15)          :: indi_posi   ! indices entero de la posicion
      !
   end type tipo_promedio_perfil
+  !
+  ! Se declaran variables para calcular promedios en perfiles por defecto
+  !
+  type( tipo_promedio_perfil )      :: temp_promedio_perfilh, temp_promedio_perfilv
+  type( tipo_promedio_perfil )      :: velu_promedio_perfilh, velu_promedio_perfilv
+  type( tipo_promedio_perfil )      :: velv_promedio_perfilh, velv_promedio_perfilv
   !
 contains
   !-----------------------------------------------------------------------------
@@ -44,7 +52,125 @@ contains
     prom_perf % indi_posi  = -2
     prom_perf % valor_prom(:,:) = -1.0_DBL
     !
-  end subroutine inicializa_cond_front
+  end subroutine inicializa_promedio_perfil
+  !
+  !************************************************************
+  ! lectura_archivo_prom
+  !
+  ! subrutina que lee el archivo que contiene el numero de integrales
+  ! y las alturas a las que se desea hacerlas.
+  !
+  !************************************************************
+  !
+  subroutine lectura_archivo_prom()
+      !
+      implicit none
+      !
+      character(len=64) :: alturas ! nombre del archivo a leer
+      integer           :: kk, ii
+      ! class(tipo_promedio_perfil) :: prom_perfil_horiz
+      !
+      temp_promedio_perfilh % orienta = 'horiz'
+      open(77, file='datos_promedio.dat')
+      read(77,*) temp_promedio_perfilh % nposi
+      !
+      do kk=1, temp_promedio_perfilh % nposi
+         !
+         read(77,*) temp_promedio_perfilh % valor_prom(kk,1)
+         !
+      end do
+      close(77)
+      !
+      !
+      !
+      ! Se usa la variable kk para recorrer las posiciones de los perfiles
+      !
+      kk = 1
+      !
+      do ii = 1, nj
+         !
+         ! Se comparan las alturas de la malla con las alturas deseadas
+         ! que est'an en el primer 'indice del arreglo prom de la estructura
+         !
+         if(yp(ii) < temp_promedio_perfilh % valor_prom(kk,1)) then
+            temp_promedio_perfilh % indi_posi(kk) = ii
+            kk = kk+1
+         end if
+         !
+      end do
+      !
+  end subroutine lectura_archivo_prom
+  !
+  !************************************************************
+  ! postpro_promedio
+  !
+  ! subrutina que calcula el promedio de la temperatura a lo
+  ! largo del tiempo. Crea un archivo de slida con los datos
+  !
+  !************************************************************
+  !
+  subroutine postpro_promedio(opcion, tiempo, Rec, temp_o, file_name)
+   !
+   use malla, only :  mic, njc
+   implicit none
+   !
+   real(kind=DBL), DIMENSION(mi+1,nj+1), intent(in) :: temp_o
+   character(32), intent(in)     :: file_name
+   character(5), intent(in)      :: opcion
+   character(6), intent(in)      :: Rec
+   real(kind=DBL), intent(in)    :: tiempo
+   integer                       :: kk, ii
+   real(kind=DBL)                :: integral
+   !
+   ! call lectura_archivo_prom()
+   !
+   open(unit = 76,file=file_name, access='append')
+   write(76,*, advance='no') tiempo
+   !
+   if ( temp_promedio_perfilh % orienta == 'horiz') then
+
+
+      do kk=1, temp_promedio_perfilh % nposi
+         !
+         call promedio_horizontal(temp_promedio_perfilh % indi_posi(kk),&
+            &temp_promedio_perfilh%valor_prom(kk,2),temp_o)
+         !
+         write(76,*,advance='no') temp_promedio_perfilh%valor_prom(kk,2)
+         !
+      end do
+      !
+      write(76,*)
+      close(76)
+      !
+   end if
+   !
+  end subroutine postpro_promedio
+  !
+  !************************************************************
+  ! promedio_horizontal
+  !
+  ! subrutina que calcula la integral de lineas horizontales
+  !
+  !************************************************************
+  !
+  subroutine promedio_horizontal(jj, integral, temp_o)
+      !
+      implicit none
+      !
+      integer, intent(in)         :: jj
+      real(kind=DBL), DIMENSION(mi+1,nj+1), intent(in) :: temp_o
+      real(kind=DBL), intent(out) :: integral
+      integer                     :: ii
+      !
+      integral = temp_o(1, jj)*(deltaxp(1)/2)
+      !
+      do ii = 2, mi
+         integral = integral + temp_o(ii,jj)*deltaxp(ii)
+      end do
+      !
+      integral = integral + temp_o(mi+1, jj)*(deltaxp(mi+1)/2)
+      !
+  end subroutine promedio_horizontal
   !
   !************************************************************
   !
