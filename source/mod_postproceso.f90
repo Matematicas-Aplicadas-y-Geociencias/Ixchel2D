@@ -147,13 +147,16 @@ contains
     close(77)
     !
     ! Se determinan los \'indices para las posiciones deseadas
+    ! Cuando los perfiles son horizontales, las posiciones son
+    ! las alturas, es decir, buscamos 'indices en la vertical
+    ! y viceversa
     !
-    call determina_indices_horizontal(temp_promedio_perfilh,xp,mi+1)
-    call determina_indices_vertical(temp_promedio_perfilv,yp,nj+1)
-    call determina_indices_horizontal(velu_promedio_perfilh,xu,mi)
-    call determina_indices_vertical(velu_promedio_perfilv,yp,nj+1)
-    call determina_indices_horizontal(velv_promedio_perfilh,xp,mi+1)
-    call determina_indices_vertical(velv_promedio_perfilv,yv,nj)
+    call determina_indices_horizontal(temp_promedio_perfilv,xp,mi+1)
+    call determina_indices_vertical(temp_promedio_perfilh,yp,nj+1)
+    call determina_indices_horizontal(velu_promedio_perfilv,xu,mi)
+    call determina_indices_vertical(velu_promedio_perfilh,yp,nj+1)
+    call determina_indices_horizontal(velv_promedio_perfilv,xp,mi+1)
+    call determina_indices_vertical(velv_promedio_perfilh,yv,nj)
     !
   end subroutine lectura_archivo_prom
   !
@@ -261,10 +264,14 @@ contains
     !
     if (opcion == 'horiz') then
        !
+       print *, 'DEBUG: entra al bucle horizontal'
+       !
        do kk=1, temp_promedio_perfilh%nposi
           !
           call promedio_horizontal(temp_promedio_perfilh%valor_prom(kk,2),&
                & temp_o(1:mi+1,temp_promedio_perfilh % indi_posi(kk)))
+          !
+          print *, 'DEBUG: ', temp_promedio_perfilh%indi_posi(kk)
           !
        end do
        !
