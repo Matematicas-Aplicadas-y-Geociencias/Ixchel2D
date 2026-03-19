@@ -4,15 +4,21 @@
 ! Este m\'odulo contiene las subrutinas que calculan cantidades 
 ! de salida y archivos de postproceso
 !
-! Autor: J.C. Cajas
+! Autor: J.C. Cajas, K. Figueroa
 !
 module postproceso
   !
-  use malla, only      :  mi, nj, DBL, deltaxp, xp, yp
+  use malla, only : mi, nj, DBL
+  use malla, only : deltaxp, xp
+  use malla, only : deltayp, yp
+  use malla, only : deltaxu, xu
+  use malla, only : deltayv, yv
   !
   implicit none
   !
-  integer :: num_integrales
+  ! Formatos de salida
+  !
+  character(len=12), parameter :: form44="(33E25.15E3)"
   !
   type tipo_promedio_perfil
      !
@@ -23,8 +29,8 @@ module postproceso
      ! 
      character(len=5)                :: orienta     ! Orientacion (horiz/verti)
      integer                         :: nposi       ! n'umero de posiciones
-     real(kind=DBL), dimension(15,2) :: valor_prom  ! posicion,cantidad promediada
-     integer, dimension(15)          :: indi_posi   ! indices entero de la posicion
+     real(kind=DBL), dimension(16,2) :: valor_prom  ! posicion,cantidad promediada
+     integer, dimension(16)          :: indi_posi   ! indices entero de la posicion
      !
   end type tipo_promedio_perfil
   !
@@ -50,7 +56,7 @@ contains
     prom_perf % orienta    = 'aaaaz'
     prom_perf % nposi      = -2
     prom_perf % indi_posi  = -2
-    prom_perf % valor_prom(:,:) = -1.0_DBL
+    prom_perf % valor_prom(:,:) = -444.0_DBL
     !
   end subroutine inicializa_promedio_perfil
   !
@@ -63,42 +69,176 @@ contains
   !************************************************************
   !
   subroutine lectura_archivo_prom()
-      !
-      implicit none
-      !
-      character(len=64) :: alturas ! nombre del archivo a leer
-      integer           :: kk, ii
-      !
-      temp_promedio_perfilh % orienta = 'horiz'
-      open(77, file='datos_promedio.dat')
-      read(77,*) temp_promedio_perfilh % nposi
-      !
-      do kk=1, temp_promedio_perfilh % nposi
-         !
-         read(77,*) temp_promedio_perfilh % valor_prom(kk,1)
-         !
-      end do
-      close(77)
-      !
-      !
-      !
-      ! Se usa la variable kk para recorrer las posiciones de los perfiles
-      !
-      kk = 1
-      !
-      do ii = 1, nj+1
-         !
-         ! Se comparan las alturas de la malla con las alturas deseadas
-         ! que est'an en el primer 'indice del arreglo prom de la estructura
-         !
-         if(yp(ii) < temp_promedio_perfilh % valor_prom(kk,1)) then
-            temp_promedio_perfilh % indi_posi(kk) = ii
-            kk = kk+1
-         end if
-         !
-      end do
-      !
+    !
+    implicit none
+    !
+    character(len=64) :: alturas ! nombre del archivo a leer
+    integer           :: kk, ii
+    !
+    ! Inicializaci'on de los valores para las estructuras posibles
+    !
+    call inicializa_promedio_perfil(temp_promedio_perfilh)
+    call inicializa_promedio_perfil(temp_promedio_perfilv)
+    call inicializa_promedio_perfil(velu_promedio_perfilh)
+    call inicializa_promedio_perfil(velu_promedio_perfilv)
+    call inicializa_promedio_perfil(velv_promedio_perfilh)
+    call inicializa_promedio_perfil(velv_promedio_perfilv)
+    !
+    temp_promedio_perfilh % orienta = 'horiz'
+    temp_promedio_perfilv % orienta = 'verti'
+    velu_promedio_perfilh % orienta = 'horiz'
+    velu_promedio_perfilv % orienta = 'verti'
+    velv_promedio_perfilh % orienta = 'horiz'
+    velv_promedio_perfilv % orienta = 'verti'
+    !
+    ! Se abre el archivo de entrada de los perfiles a promediar, y se leen las
+    ! posiciones de los perfiles
+    !
+    open(77, file='perfil_promedio.dat')
+    !
+    read(77,*) temp_promedio_perfilh % nposi
+    !
+    do kk=1, temp_promedio_perfilh % nposi
+       !
+       read(77,*) temp_promedio_perfilh % valor_prom(kk,1)
+       !
+    end do
+    !
+    read(77,*) temp_promedio_perfilv % nposi
+    !
+    do kk=1, temp_promedio_perfilv % nposi
+       !
+       read(77,*) temp_promedio_perfilv % valor_prom(kk,1)
+       !
+    end do
+    !
+    read(77,*) velu_promedio_perfilh % nposi
+    !
+    do kk=1, velu_promedio_perfilh % nposi
+       !
+       read(77,*) velu_promedio_perfilh % valor_prom(kk,1)
+       !
+    end do
+    !
+    read(77,*) velu_promedio_perfilv % nposi
+    !
+    do kk=1, velu_promedio_perfilv % nposi
+       !
+       read(77,*) velu_promedio_perfilv % valor_prom(kk,1)
+       !
+    end do
+    !
+    read(77,*) velv_promedio_perfilh % nposi
+    !
+    do kk=1, velv_promedio_perfilh % nposi
+       !
+       read(77,*) velv_promedio_perfilh % valor_prom(kk,1)
+       !
+    end do
+    !
+    read(77,*) velv_promedio_perfilv % nposi
+    !
+    do kk=1, velv_promedio_perfilv % nposi
+       !
+       read(77,*) velu_promedio_perfilv % valor_prom(kk,1)
+       !
+    end do
+    !
+    close(77)
+    !
+    ! Se determinan los \'indices para las posiciones deseadas
+    !
+    call determina_indices_horizontal(temp_promedio_perfilh,xp,mi+1)
+    call determina_indices_vertical(temp_promedio_perfilv,yp,nj+1)
+    call determina_indices_horizontal(velu_promedio_perfilh,xu,mi)
+    call determina_indices_vertical(velu_promedio_perfilv,yp,nj+1)
+    call determina_indices_horizontal(velv_promedio_perfilh,xp,mi+1)
+    call determina_indices_vertical(velv_promedio_perfilv,yv,nj)
+    !
   end subroutine lectura_archivo_prom
+  !
+  !***************************************************************
+  ! determina_indices
+  !
+  ! Subrutina que determina los \'indices m\'as cercanos para las
+  ! posiciones deseadas de los perfiles en direcci'on horizontal.
+  ! Se usa un arreglo xx con dimensi\'on mi+1 para usarse con xp y xu 
+  ! en el caso de xu, est'a sobredimensionado
+  !
+  !***************************************************************
+  subroutine determina_indices_horizontal(prom_perf,xx,nn)
+    !
+    implicit none
+    !
+    class( tipo_promedio_perfil ), intent(inout) :: prom_perf
+    !
+    real(kind=DBL), dimension(mi+1), intent(in)  :: xx
+    integer, intent(in) :: nn
+    !
+    integer :: ii, kk
+    !
+    ! Se usa la variable kk para recorrer las posiciones de los perfiles
+    !
+    kk = 1
+    !
+    do ii = 1, nn
+       !
+       ! Se comparan las alturas de la malla con las alturas deseadas
+       ! que est'an en el primer 'indice del arreglo prom de la estructura.
+       ! Se guardan los 'indices de los nodos m'as cercanos a la altura
+       ! indicada (cercano por arriba)
+       !
+       if( prom_perf % valor_prom(kk,1) < xx(ii) .and. kk <= &
+            & prom_perf % nposi) then
+          prom_perf % indi_posi(kk) = ii
+          kk = kk+1
+       end if
+       !
+    end do
+    !
+  end subroutine determina_indices_horizontal
+  !
+  !
+  !***************************************************************
+  ! determina_indices_vertical
+  !
+  ! Subrutina que determina los \'indices m\'as cercanos para las
+  ! posiciones deseadas de los perfiles en direcci'on vertical.
+  ! Se usa un arreglo xx con dimensi\'on nj+1 para usarse con yp y yv 
+  ! en el caso de yv, est'a sobredimensionado
+  !
+  !***************************************************************
+  subroutine determina_indices_vertical(prom_perf,xx,nn)
+    !
+    implicit none
+    !
+    class( tipo_promedio_perfil ), intent(inout) :: prom_perf
+    !
+    real(kind=DBL), dimension(nj+1), intent(in)  :: xx
+    integer, intent(in) :: nn
+    !
+    integer :: ii, kk
+    !
+    ! Se usa la variable kk para recorrer las posiciones de los perfiles
+    !
+    kk = 1
+    !
+    do ii = 1, nn
+       !
+       ! Se comparan las alturas de la malla con las alturas deseadas
+       ! que est'an en el primer 'indice del arreglo prom de la estructura.
+       ! Se guardan los 'indices de los nodos m'as cercanos a la altura
+       ! indicada (cercano por arriba)
+       !
+       if( prom_perf % valor_prom(kk,1) < xx(ii) .and. kk <= &
+            & prom_perf % nposi) then
+          prom_perf % indi_posi(kk) = ii
+          kk = kk+1
+       end if
+       !
+    end do
+    !
+  end subroutine determina_indices_vertical
   !
   !************************************************************
   ! postpro_promedio
@@ -109,38 +249,41 @@ contains
   !************************************************************
   !
   subroutine postpro_promedio(opcion, tiempo, temp_o, file_name)
-   !
-   use malla, only :  mic, njc
-   implicit none
-   !
-   real(kind=DBL), DIMENSION(mi+1,nj+1), intent(in) :: temp_o
-   character(32), intent(in)     :: file_name
-   character(5), intent(in)      :: opcion
-   real(kind=DBL), intent(in)    :: tiempo
-   integer                       :: kk, ii
-   !
-   ! call lectura_archivo_prom()
-   !
-   open(unit = 76,file=file_name, access='append')
-   !write(76,*, advance='no') tiempo
-   !
-   print*, opcion, temp_promedio_perfilh%orienta
-   if (opcion == temp_promedio_perfilh%orienta) then
-      !
-      print*,"DEBUG: entra a opcion"
-      do kk=1, temp_promedio_perfilh%nposi
-         !
-         call promedio_horizontal(temp_promedio_perfilh%valor_prom(kk,2),&
-            & temp_o(1:mi+1,temp_promedio_perfilh % indi_posi(kk)))
-         !
-      end do
-      !
-      write(76,*) tiempo, temp_promedio_perfilh%valor_prom(1:temp_promedio_perfilh%nposi,:)
-      !write(76,*)
-      close(76)
-      !
-   end if
-   !
+    !
+    use malla, only :  mic, njc
+    implicit none
+    !
+    real(kind=DBL), DIMENSION(mi+1,nj+1), intent(in) :: temp_o
+    character(32), intent(in)     :: file_name
+    character(5), intent(in)      :: opcion
+    real(kind=DBL), intent(in)    :: tiempo
+    integer                       :: kk, ii
+    !
+    if (opcion == 'horiz') then
+       !
+       do kk=1, temp_promedio_perfilh%nposi
+          !
+          call promedio_horizontal(temp_promedio_perfilh%valor_prom(kk,2),&
+               & temp_o(1:mi+1,temp_promedio_perfilh % indi_posi(kk)))
+          !
+       end do
+       !
+    else if (opcion == 'verti' ) then
+       do kk=1, temp_promedio_perfilh%nposi
+          !
+          call promedio_vertical(temp_promedio_perfilv%valor_prom(kk,2),&
+               & temp_o(temp_promedio_perfilv % indi_posi(kk),1:nj+1))
+          !
+       end do
+       !
+    end if
+    !
+    open(unit = 76,file=file_name,access='append')
+    !
+    write(76,form44) tiempo, temp_promedio_perfilh%valor_prom(:,:)
+    !
+    close(76)
+    !
   end subroutine postpro_promedio
   !
   !************************************************************
@@ -151,26 +294,53 @@ contains
   !************************************************************
   !
   subroutine promedio_horizontal(integral, variable)
-      !
-      implicit none
-      !
-      !integer, intent(in)         :: jj !indice (en la malla) de la posicion en la que queremos integrar
-      !integer, intent(in)         :: kk !numero (del caso) de la posición a ntegral
-      real(kind=DBL), intent(out)                 :: integral
-      real(kind=DBL), DIMENSION(mi+1), intent(in) :: variable
-      !
-      integer :: ii
-      !
-      integral = 0.0_DBL
-      integral = variable(1)*(deltaxp(1)/2.0_DBL)
-      !
-      do ii = 2, mi
-         integral= integral + variable(ii)*deltaxp(ii)
-      end do
-      !
-      integral= integral + variable(mi+1)*(deltaxp(mi)/2.0)
-      !
+    !
+    implicit none
+    !
+    real(kind=DBL), intent(out)                 :: integral
+    real(kind=DBL), DIMENSION(mi+1), intent(in) :: variable
+    !
+    integer :: ii
+    !
+    integral = 0.0_DBL
+    integral = variable(1)*(deltaxp(1)/2.0_DBL)
+    !
+    do ii = 2, mi
+       integral= integral + ( variable(ii) + variable(ii+1) ) * deltaxp(ii) * 0.5_DBL
+    end do
+    !
+    integral= integral + variable(mi+1)*(deltaxp(mi)/2.0_DBL)
+    !
   end subroutine promedio_horizontal
+  !
+  !************************************************************
+  ! promedio_horizontal
+  !
+  ! subrutina que calcula la integral de lineas horizontales
+  !
+  !************************************************************
+  !
+  subroutine promedio_vertical(integral, variable)
+    !
+    implicit none
+    !
+    real(kind=DBL), intent(out)                 :: integral
+    real(kind=DBL), DIMENSION(nj+1), intent(in) :: variable
+    !
+    integer :: jj
+    !
+    integral = 0.0_DBL
+    integral = variable(1)*(deltayp(1)/2.0_DBL)
+    !
+    do jj = 2, nj
+       !
+       integral= integral + ( variable(jj) + variable(jj+1) ) * deltayp(jj) * 0.5_DBL
+       !
+    end do
+    !
+    integral= integral + variable(nj+1)*(deltayp(nj)/2.0_DBL)
+    !
+  end subroutine promedio_vertical
   !
   !************************************************************
   !
@@ -207,7 +377,7 @@ contains
        &fron_inm,&
        &directorio&
        &)
-       !
+    !
     use malla, only : mi, nj, DBL, mic, njc
     implicit none
     INTEGER          :: itermax, paq_itera, iter_simple_max, iter_ecuaci_max
@@ -224,29 +394,29 @@ contains
     ! directorio
     !
     open(unit=10, file=directorio)
-      write (10,*) 'numero de Rayleigh                    ', Ra
-      write (10,*) 'numero de Prandtl                     ', Pr
-      write (10,*) 'incremento de tiempo                  ', dt
-      write (10,*) 'iteraciones maximas                   ', itermax
-      write (10,*) 'paquete de iteraciones                ', paq_itera
-      write (10,*) 'numero de Richardson                  ', Ri_1
-      write (10,*) 'relajacion de la presion              ', rel_pres
-      write (10,*) 'relajacion de la velocidad            ', rel_vel
-      write (10,*) 'relajacion de la temperatura          ', rel_ener
-      write (10,*) 'convergencia de la velocidad          ', conv_u
-      write (10,*) 'convergencia de la temperatura        ', conv_t
-      write (10,*) 'convergencia de la presion            ', conv_p
-      write (10,*) 'convergencia del residuo              ', conv_resi
-      write (10,*) 'convergencia del paso de tiempo       ', conv_paso
-      write (10,*) 'iteraciones maximas de SIMPLE         ', iter_simple_max
-      write (10,*) 'iteraciones maximas de las ecuaciones ', iter_ecuaci_max
-      write (10,*) 'archivo de entrada para u             ', entrada_u
-      write (10,*) 'archivo de entrada para v             ', entrada_v
-      write (10,*) 'archivo de entrada para t y p         ', entrada_tp
-      write (10,*) 'opcion de flujo inicial               ', flujo_ini
-      write (10,*) 'opcion de temperatura inicial         ', tempe_ini
-      write (10,*) 'opcion de postproceso                 ', postpro
-      write (10,*) 'opcion de frontera inmersa            ', fron_inm
+    write (10,*) 'numero de Rayleigh                    ', Ra
+    write (10,*) 'numero de Prandtl                     ', Pr
+    write (10,*) 'incremento de tiempo                  ', dt
+    write (10,*) 'iteraciones maximas                   ', itermax
+    write (10,*) 'paquete de iteraciones                ', paq_itera
+    write (10,*) 'numero de Richardson                  ', Ri_1
+    write (10,*) 'relajacion de la presion              ', rel_pres
+    write (10,*) 'relajacion de la velocidad            ', rel_vel
+    write (10,*) 'relajacion de la temperatura          ', rel_ener
+    write (10,*) 'convergencia de la velocidad          ', conv_u
+    write (10,*) 'convergencia de la temperatura        ', conv_t
+    write (10,*) 'convergencia de la presion            ', conv_p
+    write (10,*) 'convergencia del residuo              ', conv_resi
+    write (10,*) 'convergencia del paso de tiempo       ', conv_paso
+    write (10,*) 'iteraciones maximas de SIMPLE         ', iter_simple_max
+    write (10,*) 'iteraciones maximas de las ecuaciones ', iter_ecuaci_max
+    write (10,*) 'archivo de entrada para u             ', entrada_u
+    write (10,*) 'archivo de entrada para v             ', entrada_v
+    write (10,*) 'archivo de entrada para t y p         ', entrada_tp
+    write (10,*) 'opcion de flujo inicial               ', flujo_ini
+    write (10,*) 'opcion de temperatura inicial         ', tempe_ini
+    write (10,*) 'opcion de postproceso                 ', postpro
+    write (10,*) 'opcion de frontera inmersa            ', fron_inm
     close(unit=10)
     !
     !
@@ -537,9 +707,9 @@ contains
   !************************************************************
   !
   function entero_caracter(entero)
-    
+
     implicit none
-    
+
     character(6)        :: entero_caracter 
     integer, intent(in) :: entero
 
