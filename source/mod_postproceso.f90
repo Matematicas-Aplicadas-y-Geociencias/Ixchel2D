@@ -68,7 +68,6 @@ contains
       !
       character(len=64) :: alturas ! nombre del archivo a leer
       integer           :: kk, ii
-      ! class(tipo_promedio_perfil) :: prom_perfil_horiz
       !
       temp_promedio_perfilh % orienta = 'horiz'
       open(77, file='datos_promedio.dat')
@@ -87,7 +86,7 @@ contains
       !
       kk = 1
       !
-      do ii = 1, nj
+      do ii = 1, nj+1
          !
          ! Se comparan las alturas de la malla con las alturas deseadas
          ! que est'an en el primer 'indice del arreglo prom de la estructura
@@ -109,7 +108,7 @@ contains
   !
   !************************************************************
   !
-  subroutine postpro_promedio(opcion, tiempo, Rec, temp_o, file_name)
+  subroutine postpro_promedio(opcion, tiempo, temp_o, file_name)
    !
    use malla, only :  mic, njc
    implicit none
@@ -117,29 +116,27 @@ contains
    real(kind=DBL), DIMENSION(mi+1,nj+1), intent(in) :: temp_o
    character(32), intent(in)     :: file_name
    character(5), intent(in)      :: opcion
-   character(6), intent(in)      :: Rec
    real(kind=DBL), intent(in)    :: tiempo
    integer                       :: kk, ii
-   real(kind=DBL)                :: integral
    !
    ! call lectura_archivo_prom()
    !
    open(unit = 76,file=file_name, access='append')
-   write(76,*, advance='no') tiempo
+   !write(76,*, advance='no') tiempo
    !
-   if ( temp_promedio_perfilh % orienta == 'horiz') then
-
-
-      do kk=1, temp_promedio_perfilh % nposi
+   print*, opcion, temp_promedio_perfilh%orienta
+   if (opcion == temp_promedio_perfilh%orienta) then
+      !
+      print*,"DEBUG: entra a opcion"
+      do kk=1, temp_promedio_perfilh%nposi
          !
-         call promedio_horizontal(temp_promedio_perfilh % indi_posi(kk),&
-            &temp_promedio_perfilh%valor_prom(kk,2),temp_o)
-         !
-         write(76,*,advance='no') temp_promedio_perfilh%valor_prom(kk,2)
+         call promedio_horizontal(temp_promedio_perfilh%valor_prom(kk,2),&
+            & temp_o(1:mi+1,temp_promedio_perfilh % indi_posi(kk)))
          !
       end do
       !
-      write(76,*)
+      write(76,*) tiempo, temp_promedio_perfilh%valor_prom(1:temp_promedio_perfilh%nposi,:)
+      !write(76,*)
       close(76)
       !
    end if
@@ -153,22 +150,25 @@ contains
   !
   !************************************************************
   !
-  subroutine promedio_horizontal(jj, integral, temp_o)
+  subroutine promedio_horizontal(integral, variable)
       !
       implicit none
       !
-      integer, intent(in)         :: jj
-      real(kind=DBL), DIMENSION(mi+1,nj+1), intent(in) :: temp_o
-      real(kind=DBL), intent(out) :: integral
-      integer                     :: ii
+      !integer, intent(in)         :: jj !indice (en la malla) de la posicion en la que queremos integrar
+      !integer, intent(in)         :: kk !numero (del caso) de la posición a ntegral
+      real(kind=DBL), intent(out)                 :: integral
+      real(kind=DBL), DIMENSION(mi+1), intent(in) :: variable
       !
-      integral = temp_o(1, jj)*(deltaxp(1)/2)
+      integer :: ii
+      !
+      integral = 0.0_DBL
+      integral = variable(1)*(deltaxp(1)/2.0_DBL)
       !
       do ii = 2, mi
-         integral = integral + temp_o(ii,jj)*deltaxp(ii)
+         integral= integral + variable(ii)*deltaxp(ii)
       end do
       !
-      integral = integral + temp_o(mi+1, jj)*(deltaxp(mi+1)/2)
+      integral= integral + variable(mi+1)*(deltaxp(mi)/2.0)
       !
   end subroutine promedio_horizontal
   !

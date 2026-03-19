@@ -78,6 +78,7 @@ PROGRAM IXCHEL2D
   use postproceso, only  : nusselt_promedio_y, postproceso_vtk
   use postproceso, only  : postproceso_bin, entero_caracter
   use postproceso, only  : postprocesa_parametros, postpro_promedio
+  use postproceso, only  : lectura_archivo_prom
   !
   ! Variables auxiliares para bucles y n\'umero de iteraciones
   !
@@ -343,6 +344,11 @@ PROGRAM IXCHEL2D
   !
   ! call definir_cuerpo(gamma_momen, gamma_energ, 'horno')
   !
+  !----------------------------------------------
+  !
+  ! Lectura de archivo para el promedios de perfiles
+  !
+  call lectura_archivo_prom()
   !----------------------------------------------
   !
   !************************************************
@@ -1285,7 +1291,7 @@ PROGRAM IXCHEL2D
         !
         !*********************************
         if( mod(itera,1000)==0 )then
-            call postpro_promedio('horzn', tiempo, Rec, temp, file_name)
+            call postpro_promedio('horiz', tiempo, temp, file_name)
         end if
         !*********************************
         !
