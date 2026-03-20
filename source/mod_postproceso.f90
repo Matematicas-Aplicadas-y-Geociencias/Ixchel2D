@@ -264,14 +264,10 @@ contains
     !
     if (opcion == 'horiz') then
        !
-       print *, 'DEBUG: entra al bucle horizontal'
-       !
        do kk=1, temp_promedio_perfilh%nposi
           !
           call promedio_horizontal(temp_promedio_perfilh%valor_prom(kk,2),&
                & temp_o(1:mi+1,temp_promedio_perfilh % indi_posi(kk)))
-          !
-          print *, 'DEBUG: ', temp_promedio_perfilh%indi_posi(kk)
           !
        end do
        !
