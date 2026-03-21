@@ -2,7 +2,8 @@
 ! M\'odulo de postproceso
 !
 ! Este m\'odulo contiene las subrutinas que calculan cantidades 
-! de salida y archivos de postproceso
+! de salida y archivos de postproceso, adem'as contiene subrutinas
+! de entrada de datos
 !
 ! Autor: J.C. Cajas
 !
@@ -13,6 +14,43 @@ module postproceso
   implicit none
   !
 contains
+  !
+  !************************************************************
+  !
+  ! lectura_archivo_parametros
+  !
+  ! Subrutina de lectura del archivo de par'ametros de la
+  ! simulaci'on
+  !
+  !************************************************************
+  !
+  subroutine lectura_archivo_parametros(&
+       &adimen,          &
+       &Ra,              &
+       &Pr,              &
+       &Ri_1,            &
+       &dt,              &
+       &paq_itera,       &
+       &itermax,         &
+       &rel_pres,        &
+       &rel_vel,         &
+       &rel_ener,        &
+       &conv_u,          &
+       &conv_t,          &
+       &conv_p,          &
+       &conv_resi,       &
+       &conv_paso,       &
+       &iter_ecuaci_max, &
+       &iter_simple_max, &
+       &entrada_u,       &
+       &entrada_v,       &
+       &entrada_tp,      &
+       &flujo_ini,       &
+       &tempe_ini,       &
+       &postprocesar,    &
+       &front_inmersa)
+    
+  end subroutine lectura_archivo_parametros
   !
   !************************************************************
   !
