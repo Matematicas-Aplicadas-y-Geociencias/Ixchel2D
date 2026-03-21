@@ -25,31 +25,74 @@ contains
   !************************************************************
   !
   subroutine lectura_archivo_parametros(&
-       &adimen,          &
-       &Ra,              &
-       &Pr,              &
-       &Ri_1,            &
-       &dt,              &
-       &paq_itera,       &
-       &itermax,         &
-       &rel_pres,        &
-       &rel_vel,         &
-       &rel_ener,        &
-       &conv_u,          &
-       &conv_t,          &
-       &conv_p,          &
-       &conv_resi,       &
-       &conv_paso,       &
-       &iter_ecuaci_max, &
-       &iter_simple_max, &
-       &entrada_u,       &
-       &entrada_v,       &
-       &entrada_tp,      &
-       &flujo_ini,       &
-       &tempe_ini,       &
-       &postprocesar,    &
-       &front_inmersa)
-    
+       &adimeno,          &
+       &Rao,              &
+       &Pro,              &
+       &Rio,              &
+       &dto,              &
+       &paq_iterao,       &
+       &itermaxo,         &
+       &rel_preso,        &
+       &rel_velo,         &
+       &rel_enero,        &
+       &conv_uo,          &
+       &conv_to,          &
+       &conv_po,          &
+       &conv_resio,       &
+       &conv_paso,        &
+       &iter_ecuaci_maxo, &
+       &iter_simple_maxo, &
+       &entrada_uo,       &
+       &entrada_vo,       &
+       &entrada_tpo,      &
+       &flujo_inio,       &
+       &tempe_inio,       &
+       &postprocesaro,    &
+       &front_inmersao )
+    !
+    implicit none
+    !
+    character(len=7)  :: adimeno
+    character(len=8)  :: flujo_inio, tempe_inio
+    character(len=28) :: entrada_uo,entrada_vo,entrada_tpo
+    real(kind=DBL)    :: Rao, Pro, Rio, dto
+    real(kind=DBL)    :: rel_preso, rel_velo, rel_enero
+    real(kind=DBL)    :: conv_uo, conv_po, conv_to
+    real(kind=DBL)    :: conv_resio, conv_paso
+    integer           :: paq_iterao, itermaxo
+    integer           :: iter_ecuaci_maxo, iter_simple_maxo
+    logical           :: postprocesaro, front_inmersao
+    !
+    ! Mensaje de lectura de par'ametros
+    !
+    write(*,*) "Inicia lectura de archivo de par'ametros"
+    !
+    open(unit=10,file='parametros.dat')
+    !
+    read (10,*) adimeno                      ! Tipo de adimensionalizaci\'on (tipo de convecci\'on)
+    !
+    if( adimeno == 'mixta'   ) read(10,*) Rao, Pro, Rio ! n'umero de Reynolds, Prandtl, Richardson
+    if( adimeno == 'natural' ) read(10,*) Rao, Pro      ! n'umero de Rayleigh, Prandtl
+    !
+    read(10,*) dto                                      ! paso de tiempo
+    !                                                   
+    read(10,*) postprocesaro, paq_iterao, itermaxo      ! postpro, paq itera, iteraciones m'aximas
+    read(10,*) rel_preso, conv_po, iter_ecuaci_maxo     ! relajaci'on, umbral, itermax de la presi'on
+    read(10,*) rel_velo,  conv_uo, iter_ecuaci_maxo     ! relajaci'on, umbral, itermax de la velocidad
+    read(10,*) rel_enero, conv_to, iter_ecuaci_maxo     ! relajaci'on, umbral, itermax de la energ'ia
+    read(10,*) conv_resio, conv_paso, iter_simple_maxo  ! umbrales de residuo, SIMPLE, itermax SIMPLE
+    read(10,*) entrada_uo                               ! archivo de entrada para u
+    read(10,*) entrada_vo                               ! archivo de entrada para v
+    read(10,*) entrada_tpo                              ! archivo de entrada para t y p
+    read(10,*) flujo_inio, tempe_inio                   ! opci'on de flujo y temperatura iniciales
+    !
+    close(unit=10)
+    !
+    ! Mensaje de finalizaci'on de la lectura del archivo de par'ametros
+    !
+    write(*,*) "Finaliza lectura de archivo de par'ametros"
+    write(*,*) "------------------------------------------"
+    !
   end subroutine lectura_archivo_parametros
   !
   !************************************************************
@@ -88,8 +131,8 @@ contains
        &directorio&
        &)
        !
-    use malla, only : mi, nj, DBL, mic, njc
     implicit none
+    !
     INTEGER          :: itermax, paq_itera, iter_simple_max, iter_ecuaci_max
     REAL(kind=DBL)   :: Ra,Pr,dt,Ri_1,rel_pres,rel_vel,rel_ener
     REAL(kind=DBL)   :: conv_u,conv_p,conv_t,conv_resi,conv_paso

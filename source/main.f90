@@ -73,8 +73,9 @@ PROGRAM IXCHEL2D
   !
   use solucionador, only : tridiagonal
   !
-  ! Subrutinas de postproceso
-  ! 
+  ! Subrutinas de entrada y postproceso
+  !
+  use postproceso, only  : lectura_archivo_parametros
   use postproceso, only  : nusselt_promedio_y, postproceso_vtk
   use postproceso, only  : postproceso_bin, entero_caracter
   use postproceso, only  : postprocesa_parametros
@@ -161,8 +162,6 @@ PROGRAM IXCHEL2D
   write(*,*) "                 IXCHEL2D"
   write(*,*) " "
   write(*,*) "------------------------------------------"
-  write(*,*) "Inicia lectura de archivo de par'ametros"
-  !
   !
   ! Valor por defecto de la variable de control de postproceso
   !
@@ -170,36 +169,31 @@ PROGRAM IXCHEL2D
   !
   ! Par'ametros para la simulaci'on
   !
-  OPEN(unit=10,file='parametros.dat')
-  read (10,*) adimen          ! Tipo de adimensionalizaci\'on (tipo de convecci\'on)
-  READ (10,*) Ra              ! n'umero de Reynolds (Rayleigh en convecci\'on natural)
-  ! READ (10,*) Rec             ! caracter de Re
-  READ (10,*) Pr              ! n'umero de Prandtl
-  READ (10,*) Ri_1            ! n'umero de Richardson
-  READ (10,*) dt              ! incremento de tiempo
-  READ (10,*) paq_itera       ! paquete de iteraciones
-  read (10,*) itermax         ! iteraciones totales de la ejecuci\'on
-  READ (10,*) rel_pres        ! relajaci'on de la presi'on
-  READ (10,*) rel_vel         ! relajaci'on de la velocidad
-  READ (10,*) rel_ener        ! relajaci'on de la temperatura
-  READ (10,*) conv_u          ! convergencia de la velocidad
-  READ (10,*) conv_t          ! convergencia de la temperatura
-  READ (10,*) conv_p          ! convergencia de la presi'on
-  READ (10,*) conv_resi       ! convergencia del residuo
-  READ (10,*) conv_paso       ! convergencia del paso de tiempo
-  read (10,*) iter_ecuaci_max ! iter m\'aximas para las ecuaciones
-  read (10,*) iter_simple_max ! iter m\'aximas algoritmo SIMPLE
-  READ (10,*) entrada_u       ! archivo de entrada para u
-  READ (10,*) entrada_v       ! archivo de entrada para v
-  READ (10,*) entrada_tp      ! archivo de entrada para t y p
-  read (10,*) flujo_ini       ! opci'on de flujo inicial
-  read (10,*) tempe_ini       ! opci'on de temperatura inicial
-  read (10,*) postprocesar    ! variable booleana que indica si hay postproceso
-  read (10,*) front_inmersa   ! variable booleana que indica si hay frontera inmersa
-  CLOSE(unit=10)
-  !
-  write(*,*) "Finaliza lectura de archivo de par'ametros"
-  write(*,*) "------------------------------------------"
+  call lectura_archivo_parametros(&
+       &adimen,          &
+       &Ra,              &
+       &Pr,              &
+       &Ri_1,            &
+       &dt,              &
+       &paq_itera,       &
+       &itermax,         &
+       &rel_pres,        &
+       &rel_vel,         &
+       &rel_ener,        &
+       &conv_u,          &
+       &conv_t,          &
+       &conv_p,          &
+       &conv_resi,       &
+       &conv_paso,       &
+       &iter_ecuaci_max, &
+       &iter_simple_max, &
+       &entrada_u,       &
+       &entrada_v,       &
+       &entrada_tp,      &
+       &flujo_ini,       &
+       &tempe_ini,       &
+       &postprocesar,    &
+       &front_inmersa )
   !
   !--------------------------------------------------------------
   !
