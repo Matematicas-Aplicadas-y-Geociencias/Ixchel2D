@@ -349,6 +349,7 @@ PROGRAM IXCHEL2D
   ! Lectura de archivo para el promedios de perfiles
   !
   call lectura_archivo_prom()
+  !
   !----------------------------------------------
   !
   !************************************************
@@ -1255,45 +1256,57 @@ PROGRAM IXCHEL2D
            !
         end do ALGORITMO_SIMPLE  !final del algoritmo SIMPLE
         !
-        !-------------------------------------
+        ! -------------------------------------
         !
         ! Escritura de mensajes y postprocesos
         !
-        itera = itera + 1
-        if( mod(itera,500)==0 )write(*,*) 'ITERACION: ',itera,residuo,maxbo
-
-        if( mod(itera,1000)==0 )then
-           !CALL entropia_cvt(x,y,u,xu,v,yv,temp,entropia_calor,entropia_viscosa,entropia,&
+        itera  = itera + 1
+        tiempo = tiempo_inicial+itera*dt
+        !
+        ! --------------------------------------------
+        !
+        ! Se calculan promedios en perfiles definidos.
+        ! Se hacen tres por cada unidad de tiempo 
+        !
+        if( mod(itera, ceiling( 1._DBL/(3._DBL*dt) ) ) == 0 ) then
+           !
+           write(*,*) 'ITERACION: ',itera,tiempo,maxbo,residuo
+           !
+           file_name = 'temp_n'//trim(njc)//'m'//trim(mic)//'_R'&
+                &//trim(Rec)//'.dat'
+           !
+           call postpro_promedio('horiz', tiempo, temp, file_name)
+           !
+        end if
+        !
+        !
+        ! if( mod(itera,1000)==0 )then
+           ! !CALL entropia_cvt(x,y,u,xu,v,yv,temp,entropia_calor,entropia_viscosa,entropia,&
            !&entropia_int,temp_int,a_ent,lambda_ent)
            !
            !$acc update self(temp(1:mi+1,1:nj+1)) ! !async(stream2)
            ! $acc parallel !async(stream2)
-           call nusselt_promedio_y(&
-                &xp,yp,deltaxp,deltayp,&
-                &temp,nusselt0,nusselt1,&
-                &placa_min,placa_max&
-                &)
+           ! call nusselt_promedio_y(&
+           !      &xp,yp,deltaxp,deltayp,&
+           !      &temp,nusselt0,nusselt1,&
+           !      &placa_min,placa_max&
+           !      &)
            ! $acc end parallel
            ! $acc wait
            !
-           temp_med = (temp((placa_min+placa_max)/2,nj/2+1)+&
-                &temp((placa_min+placa_max)/2+1,nj/2+1))/2._DBL
-           OPEN(unit = 5,file='nuss_sim_n'//trim(njc)//'m'//trim(mic)//'_R'&
-                &//trim(Rec)//'.dat',access = 'append')
-           WRITE(5,form26) tiempo_inicial+itera*dt,nusselt0,&
-                &-nusselt1,temp_med,temp_int,entropia_int
-           CLOSE(unit = 5)
-        end if
-        !*********************************
-        tiempo   = tiempo_inicial+itera*dt
-        file_name = 'temp_n'//trim(njc)//'m'//trim(mic)//'_R'&
-                &//trim(Rec)//'.dat'
+           ! temp_med = (temp((placa_min+placa_max)/2,nj/2+1)+&
+           !      &temp((placa_min+placa_max)/2+1,nj/2+1))/2._DBL
+           ! OPEN(unit = 5,file='nuss_sim_n'//trim(njc)//'m'//trim(mic)//'_R'&
+           !      &//trim(Rec)//'.dat',access = 'append')
+           ! WRITE(5,form26) tiempo_inicial+itera*dt,nusselt0,&
+           !      &-nusselt1,temp_med,temp_int,entropia_int
+           ! CLOSE(unit = 5)
+           !
+        ! end if
         !
-        !*********************************
-        if( mod(itera,1000)==0 )then
-            call postpro_promedio('horiz', tiempo, temp, file_name)
-        end if
-        !*********************************
+        ! ********************************************************
+        !
+        ! Se actualizan los  arreglos para paso de tiempo anterior
         !
         !$acc parallel loop gang collapse(2) !async(stream1)
         do jj=1, nj+1
