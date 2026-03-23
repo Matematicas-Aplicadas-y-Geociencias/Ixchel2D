@@ -346,7 +346,7 @@ PROGRAM IXCHEL2D
   !
   !----------------------------------------------
   !
-  ! Lectura de archivo para el promedios de perfiles
+  ! Lectura de archivo para los promedios de perfiles
   !
   call lectura_archivo_prom()
   !
@@ -1272,10 +1272,10 @@ PROGRAM IXCHEL2D
            !
            write(*,*) 'ITERACION: ',itera,tiempo,maxbo,residuo
            !
-           file_name = 'temp_n'//trim(njc)//'m'//trim(mic)//'_R'&
+           file_name = 'perfil_n'//trim(njc)//'m'//trim(mic)//'_R'&
                 &//trim(Rec)//'.dat'
            !
-           call postpro_promedio('horiz', tiempo, temp, file_name)
+           call postpro_promedio('horiz', tiempo, temp, u, v, file_name)
            !
         end if
         !

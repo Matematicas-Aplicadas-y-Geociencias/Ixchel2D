@@ -18,7 +18,7 @@ module postproceso
   !
   ! Formatos de salida
   !
-  character(len=12), parameter :: form44="(33E25.15E3)"
+  character(len=13), parameter :: form44="(129E25.15E3)"
   !
   type tipo_promedio_perfil
      !
@@ -29,16 +29,17 @@ module postproceso
      ! 
      character(len=5)                :: orienta     ! Orientacion (horiz/verti)
      integer                         :: nposi       ! n'umero de posiciones
-     real(kind=DBL), dimension(16,2) :: valor_prom  ! posicion,cantidad promediada
-     integer, dimension(16)          :: indi_posi   ! indices entero de la posicion
+     real(kind=DBL), dimension(16,4) :: valor_prom  ! posicion,cantidad promediada
+     integer, dimension(16,2)        :: indi_posi   ! indices entero de la posicion
+     logical, dimension(3)           :: variable    ! indicador velu, velv, temp
      !
   end type tipo_promedio_perfil
   !
   ! Se declaran variables para calcular promedios en perfiles por defecto
   !
-  type( tipo_promedio_perfil )      :: temp_promedio_perfilh, temp_promedio_perfilv
-  type( tipo_promedio_perfil )      :: velu_promedio_perfilh, velu_promedio_perfilv
-  type( tipo_promedio_perfil )      :: velv_promedio_perfilh, velv_promedio_perfilv
+  type( tipo_promedio_perfil )      :: promedio_perfilh, promedio_perfilv
+  !type( tipo_promedio_perfil )      :: velu_promedio_perfilh, velu_promedio_perfilv
+  !type( tipo_promedio_perfil )      :: velv_promedio_perfilh, velv_promedio_perfilv
   !
 contains
   !-----------------------------------------------------------------------------
@@ -57,6 +58,7 @@ contains
     prom_perf % nposi      = -2
     prom_perf % indi_posi  = -2
     prom_perf % valor_prom(:,:) = -444.0_DBL
+    prom_perf % variable(1:3)   = .T.        ! Se inicializan en true
     !
   end subroutine inicializa_promedio_perfil
   !
@@ -77,72 +79,52 @@ contains
     !
     ! Inicializaci'on de los valores para las estructuras posibles
     !
-    call inicializa_promedio_perfil(temp_promedio_perfilh)
-    call inicializa_promedio_perfil(temp_promedio_perfilv)
-    call inicializa_promedio_perfil(velu_promedio_perfilh)
-    call inicializa_promedio_perfil(velu_promedio_perfilv)
-    call inicializa_promedio_perfil(velv_promedio_perfilh)
-    call inicializa_promedio_perfil(velv_promedio_perfilv)
+    call inicializa_promedio_perfil(promedio_perfilh)
+    call inicializa_promedio_perfil(promedio_perfilv)
+    !call inicializa_promedio_perfil(velu_promedio_perfilh)
+    !call inicializa_promedio_perfil(velu_promedio_perfilv)
+    !call inicializa_promedio_perfil(velv_promedio_perfilh)
+    !call inicializa_promedio_perfil(velv_promedio_perfilv)
     !
-    temp_promedio_perfilh % orienta = 'horiz'
-    temp_promedio_perfilv % orienta = 'verti'
-    velu_promedio_perfilh % orienta = 'horiz'
-    velu_promedio_perfilv % orienta = 'verti'
-    velv_promedio_perfilh % orienta = 'horiz'
-    velv_promedio_perfilv % orienta = 'verti'
+    !temp_promedio_perfilh % orienta = 'horiz'
+    !temp_promedio_perfilv % orienta = 'verti'
+    !velu_promedio_perfilh % orienta = 'horiz'
+    !velu_promedio_perfilv % orienta = 'verti'
+    !velv_promedio_perfilh % orienta = 'horiz'
+    !velv_promedio_perfilv % orienta = 'verti'
     !
     ! Se abre el archivo de entrada de los perfiles a promediar, y se leen las
     ! posiciones de los perfiles
     !
     open(77, file='perfil_promedio.dat')
     !
-    read(77,*) temp_promedio_perfilh % nposi
+    ! Se leen los indicadores velu, velv, temp para perfiles horizontales
     !
-    do kk=1, temp_promedio_perfilh % nposi
+    read(77,*) promedio_perfilh % variable(1), promedio_perfilh % variable(2), promedio_perfilh % variable(3)
+    !
+    !Se leen las orientaciones y sus respectivas ubicaciones de perfiles
+    !
+    read(77,*) promedio_perfilh % orienta, promedio_perfilh % nposi
+    !
+    do kk=1, promedio_perfilh % nposi
        !
-       read(77,*) temp_promedio_perfilh % valor_prom(kk,1)
+       read(77,*) promedio_perfilh % valor_prom(kk,1)
        !
     end do
     !
-    read(77,*) temp_promedio_perfilv % nposi
+    read(77,*) promedio_perfilv % orienta, promedio_perfilv % nposi
     !
-    do kk=1, temp_promedio_perfilv % nposi
+    do kk=1, promedio_perfilv % nposi
        !
-       read(77,*) temp_promedio_perfilv % valor_prom(kk,1)
+       read(77,*) promedio_perfilv % valor_prom(kk,1)
        !
     end do
     !
-    read(77,*) velu_promedio_perfilh % nposi
+    !Se igualan los indicadores para perfiles verticales
     !
-    do kk=1, velu_promedio_perfilh % nposi
-       !
-       read(77,*) velu_promedio_perfilh % valor_prom(kk,1)
-       !
-    end do
-    !
-    read(77,*) velu_promedio_perfilv % nposi
-    !
-    do kk=1, velu_promedio_perfilv % nposi
-       !
-       read(77,*) velu_promedio_perfilv % valor_prom(kk,1)
-       !
-    end do
-    !
-    read(77,*) velv_promedio_perfilh % nposi
-    !
-    do kk=1, velv_promedio_perfilh % nposi
-       !
-       read(77,*) velv_promedio_perfilh % valor_prom(kk,1)
-       !
-    end do
-    !
-    read(77,*) velv_promedio_perfilv % nposi
-    !
-    do kk=1, velv_promedio_perfilv % nposi
-       !
-       read(77,*) velu_promedio_perfilv % valor_prom(kk,1)
-       !
-    end do
+    promedio_perfilv % variable(1) = promedio_perfilh % variable(1) ! indicador velu
+    promedio_perfilv % variable(2) = promedio_perfilh % variable(2) ! indicador velv
+    promedio_perfilv % variable(3) = promedio_perfilh % variable(3) ! indicador temp
     !
     close(77)
     !
@@ -151,12 +133,14 @@ contains
     ! las alturas, es decir, buscamos 'indices en la vertical
     ! y viceversa
     !
-    call determina_indices_horizontal(temp_promedio_perfilv,xp,mi+1)
-    call determina_indices_vertical(temp_promedio_perfilh,yp,nj+1)
-    call determina_indices_horizontal(velu_promedio_perfilv,xu,mi)
-    call determina_indices_vertical(velu_promedio_perfilh,yp,nj+1)
-    call determina_indices_horizontal(velv_promedio_perfilv,xp,mi+1)
-    call determina_indices_vertical(velv_promedio_perfilh,yv,nj)
+    call determina_indices(promedio_perfilv,xp,mi+1,1) !indices en malla principal
+    call determina_indices(promedio_perfilh,yp,nj+1,1) !indices en lamma principal
+    call determina_indices(promedio_perfilv,xu,mi,2)   !indices en vel
+    call determina_indices(promedio_perfilh,yv,nj,2)   !indices en vel
+    !call determina_indices_horizontal(velu_promedio_perfilv,xu,mi)
+    !call determina_indices_vertical(velu_promedio_perfilh,yp,nj+1)
+    !call determina_indices_horizontal(velv_promedio_perfilv,xp,mi+1)
+    !call determina_indices_vertical(velv_promedio_perfilh,yv,nj)
     !
   end subroutine lectura_archivo_prom
   !
@@ -164,12 +148,12 @@ contains
   ! determina_indices
   !
   ! Subrutina que determina los \'indices m\'as cercanos para las
-  ! posiciones deseadas de los perfiles en direcci'on horizontal.
+  ! posiciones deseadas de los perfiles.
   ! Se usa un arreglo xx con dimensi\'on mi+1 para usarse con xp y xu 
   ! en el caso de xu, est'a sobredimensionado
   !
   !***************************************************************
-  subroutine determina_indices_horizontal(prom_perf,xx,nn)
+  subroutine determina_indices_horizontal(prom_perf, xx, nn, indice)
     !
     implicit none
     !
@@ -177,6 +161,7 @@ contains
     !
     real(kind=DBL), dimension(mi+1), intent(in)  :: xx
     integer, intent(in) :: nn
+    integer, intent(in) :: indice
     !
     integer :: ii, kk
     !
@@ -193,8 +178,8 @@ contains
        !
        if( prom_perf % valor_prom(kk,1) < xx(ii) .and. kk <= &
             & prom_perf % nposi) then
-          prom_perf % indi_posi(kk) = ii
-          kk = kk+1
+          prom_perf % indi_posi(kk,indice) = ii
+       kk = kk+1
        end if
        !
     end do
@@ -211,37 +196,37 @@ contains
   ! en el caso de yv, est'a sobredimensionado
   !
   !***************************************************************
-  subroutine determina_indices_vertical(prom_perf,xx,nn)
-    !
-    implicit none
-    !
-    class( tipo_promedio_perfil ), intent(inout) :: prom_perf
-    !
-    real(kind=DBL), dimension(nj+1), intent(in)  :: xx
-    integer, intent(in) :: nn
-    !
-    integer :: ii, kk
-    !
-    ! Se usa la variable kk para recorrer las posiciones de los perfiles
-    !
-    kk = 1
-    !
-    do ii = 1, nn
-       !
-       ! Se comparan las alturas de la malla con las alturas deseadas
-       ! que est'an en el primer 'indice del arreglo prom de la estructura.
-       ! Se guardan los 'indices de los nodos m'as cercanos a la altura
-       ! indicada (cercano por arriba)
-       !
-       if( prom_perf % valor_prom(kk,1) < xx(ii) .and. kk <= &
-            & prom_perf % nposi) then
-          prom_perf % indi_posi(kk) = ii
-          kk = kk+1
-       end if
-       !
-    end do
-    !
-  end subroutine determina_indices_vertical
+!   subroutine determina_indices_vertical(prom_perf, xx, nn)
+!     !
+!     implicit none
+!     !
+!     class( tipo_promedio_perfil ), intent(inout) :: prom_perf
+!     !
+!     real(kind=DBL), dimension(nj+1), intent(in)  :: xx
+!     integer, intent(in) :: nn
+!     !
+!     integer :: ii, kk
+!     !
+!     ! Se usa la variable kk para recorrer las posiciones de los perfiles
+!     !
+!     kk = 1
+!     !
+!     do ii = 1, nn
+!        !
+!        ! Se comparan las alturas de la malla con las alturas deseadas
+!        ! que est'an en el primer 'indice del arreglo prom de la estructura.
+!        ! Se guardan los 'indices de los nodos m'as cercanos a la altura
+!        ! indicada (cercano por arriba)
+!        !
+!        if( prom_perf % valor_prom(kk,1) < xx(ii) .and. kk <= &
+!             & prom_perf % nposi) then
+!           prom_perf % indi_posi(kk) = ii
+!           kk = kk+1
+!        end if
+!        !
+!     end do
+!     !
+!   end subroutine determina_indices_vertical
   !
   !************************************************************
   ! postpro_promedio
@@ -251,12 +236,14 @@ contains
   !
   !************************************************************
   !
-  subroutine postpro_promedio(opcion, tiempo, temp_o, file_name)
+  subroutine postpro_promedio(opcion, tiempo, temp_o, u_o, v_o, file_name)
     !
-    use malla, only :  mic, njc
+    !use malla, only :  mic, njc
     implicit none
     !
-    real(kind=DBL), DIMENSION(mi+1,nj+1), intent(in) :: temp_o
+    real(kind=DBL), dimension(mi+1,nj+1), intent(in) :: temp_o
+    real(kind=DBL), dimension(mi,nj+1),   intent(in)  :: u_o
+    real(kind=DBL), dimension(mi+1,nj),   intent(in)  :: v_o
     character(32), intent(in)     :: file_name
     character(5), intent(in)      :: opcion
     real(kind=DBL), intent(in)    :: tiempo
@@ -264,18 +251,48 @@ contains
     !
     if (opcion == 'horiz') then
        !
-       do kk=1, temp_promedio_perfilh%nposi
+       do kk=1, promedio_perfilh%nposi
           !
-          call promedio_horizontal(temp_promedio_perfilh%valor_prom(kk,2),&
-               & temp_o(1:mi+1,temp_promedio_perfilh % indi_posi(kk)))
+          if (promedio_perfilh % variable(1)) then
+               call promedio_horizontal(promedio_perfilh%valor_prom(kk,2),&
+               & u_o(1:mi,promedio_perfilh % indi_posi(kk,2)))
+               print *, 'DEBUG: perfil horiz velu'
+          end if
+          !
+          if (promedio_perfilh % variable(2)) then
+               call promedio_horizontal(promedio_perfilh%valor_prom(kk,3),&
+               & v_o(1:mi+1,promedio_perfilh % indi_posi(kk,1)))
+               print *, 'DEBUG: perfil horiz velv'
+          end if
+          !
+          if (promedio_perfilh % variable(3)) then
+               call promedio_horizontal(promedio_perfilh%valor_prom(kk,4),&
+               & temp_o(1:mi+1,promedio_perfilh % indi_posi(kk,1)))
+               print *, 'DEBUG: perfil horiz temp'
+          end if
           !
        end do
        !
     else if (opcion == 'verti' ) then
-       do kk=1, temp_promedio_perfilh%nposi
+       do kk=1, promedio_perfilh%nposi
           !
-          call promedio_vertical(temp_promedio_perfilv%valor_prom(kk,2),&
-               & temp_o(temp_promedio_perfilv % indi_posi(kk),1:nj+1))
+          if (promedio_perfilh % variable(1)) then
+               call promedio_vertical(promedio_perfilv%valor_prom(kk,2),&
+               & u_o(promedio_perfilv % indi_posi(kk,1),1:nj+1))
+               print *, 'DEBUG: perfil vert velu'
+          end if
+          !
+          if (promedio_perfilh % variable(2)) then
+               call promedio_vertical(promedio_perfilv%valor_prom(kk,3),&
+               & v_o(promedio_perfilv % indi_posi(kk,2),1:nj))
+               print *, 'DEBUG: perfil vert velv'
+          end if
+          !
+          if (promedio_perfilh % variable(3)) then
+               call promedio_vertical(promedio_perfilv%valor_prom(kk,4),&
+               & temp_o(promedio_perfilv % indi_posi(kk,1),1:nj+1))
+               print *, 'DEBUG: perfil vert temp'
+          end if
           !
        end do
        !
@@ -283,7 +300,7 @@ contains
     !
     open(unit = 76,file=file_name,access='append')
     !
-    write(76,form44) tiempo, temp_promedio_perfilh%valor_prom(:,:)
+    write(76,form44) tiempo, promedio_perfilh%valor_prom(:,:), promedio_perfilv%valor_prom(:,:)
     !
     close(76)
     !
@@ -296,23 +313,23 @@ contains
   !
   !************************************************************
   !
-  subroutine promedio_horizontal(integral, variable)
+  subroutine promedio_horizontal(integral, arr_var)
     !
     implicit none
     !
     real(kind=DBL), intent(out)                 :: integral
-    real(kind=DBL), DIMENSION(mi+1), intent(in) :: variable
+    real(kind=DBL), DIMENSION(mi+1), intent(in) :: arr_var ! arreglo de la variable (velu, velv, temp)
     !
     integer :: ii
     !
     integral = 0.0_DBL
-    integral = variable(1)*(deltaxp(1)/2.0_DBL)
+    integral = arr_var(1)*(deltaxp(1)/2.0_DBL)
     !
     do ii = 2, mi
-       integral= integral + ( variable(ii) + variable(ii+1) ) * deltaxp(ii) * 0.5_DBL
+       integral= integral + ( arr_var(ii) + arr_var(ii+1) ) * deltaxp(ii) * 0.5_DBL
     end do
     !
-    integral= integral + variable(mi+1)*(deltaxp(mi)/2.0_DBL)
+    integral= integral + arr_var(mi+1)*(deltaxp(mi)/2.0_DBL)
     !
   end subroutine promedio_horizontal
   !
@@ -323,25 +340,25 @@ contains
   !
   !************************************************************
   !
-  subroutine promedio_vertical(integral, variable)
+  subroutine promedio_vertical(integral, arr_var)
     !
     implicit none
     !
     real(kind=DBL), intent(out)                 :: integral
-    real(kind=DBL), DIMENSION(nj+1), intent(in) :: variable
+    real(kind=DBL), DIMENSION(nj+1), intent(in) :: arr_var
     !
     integer :: jj
     !
     integral = 0.0_DBL
-    integral = variable(1)*(deltayp(1)/2.0_DBL)
+    integral = arr_var(1)*(deltayp(1)/2.0_DBL)
     !
     do jj = 2, nj
        !
-       integral= integral + ( variable(jj) + variable(jj+1) ) * deltayp(jj) * 0.5_DBL
+       integral= integral + ( arr_var(jj) + arr_var(jj+1) ) * deltayp(jj) * 0.5_DBL
        !
     end do
     !
-    integral= integral + variable(nj+1)*(deltayp(nj)/2.0_DBL)
+    integral= integral + arr_var(nj+1)*(deltayp(nj)/2.0_DBL)
     !
   end subroutine promedio_vertical
   !
