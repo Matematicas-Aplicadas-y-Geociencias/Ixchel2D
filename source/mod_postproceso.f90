@@ -52,16 +52,16 @@ contains
     !
     implicit none
     !
-    character(len=7)  :: adimeno
-    character(len=8)  :: flujo_inio, tempe_inio
-    character(len=28) :: entrada_uo,entrada_vo,entrada_tpo
-    real(kind=DBL)    :: Rao, Pro, Rio, dto
-    real(kind=DBL)    :: rel_preso, rel_velo, rel_enero
-    real(kind=DBL)    :: conv_uo, conv_po, conv_to
-    real(kind=DBL)    :: conv_resio, conv_paso
-    integer           :: paq_iterao, itermaxo
-    integer           :: iter_ecuaci_maxo, iter_simple_maxo
-    logical           :: postprocesaro, front_inmersao
+    character(len=7), intent(out)  :: adimeno
+    character(len=8), intent(out)  :: flujo_inio, tempe_inio
+    character(len=28), intent(out) :: entrada_uo,entrada_vo,entrada_tpo
+    real(kind=DBL), intent(out)    :: Rao, Pro, Rio, dto
+    real(kind=DBL), intent(out)    :: rel_preso, rel_velo, rel_enero
+    real(kind=DBL), intent(out)    :: conv_uo, conv_po, conv_to
+    real(kind=DBL), intent(out)    :: conv_resio, conv_paso
+    integer, intent(out)           :: paq_iterao, itermaxo
+    integer, intent(out)           :: iter_ecuaci_maxo, iter_simple_maxo
+    logical, intent(out)           :: postprocesaro, front_inmersao
     !
     ! Mensaje de lectura de par'ametros
     !
@@ -85,6 +85,7 @@ contains
     read(10,*) entrada_vo                               ! archivo de entrada para v
     read(10,*) entrada_tpo                              ! archivo de entrada para t y p
     read(10,*) flujo_inio, tempe_inio                   ! opci'on de flujo y temperatura iniciales
+    read(10,*) front_inmersao
     !
     close(unit=10)
     !

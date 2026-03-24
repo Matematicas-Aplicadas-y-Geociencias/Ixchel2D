@@ -919,11 +919,11 @@ PROGRAM IXCHEL2D
               end do calculo_dif_corr_pres
               ! error=sqrt(error)
               !
-              !$acc parallel loop gang collapse(2) reduction(+:maxbo)
+              !$acc parallel loop gang collapse(2) reduction(max:maxbo)
               calculo_dif_maxbo: do jj=2, nj
                  do ii=2, mi
 
-                    maxbo = maxbo + dabs(b_o(ii,jj))*deltaxp(ii)*deltayp(jj)
+                    maxbo = max(maxbo,dabs(b_o(ii,jj)))
                     
                  end do
               end do calculo_dif_maxbo
