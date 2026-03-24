@@ -132,11 +132,13 @@ contains
     ! Cuando los perfiles son horizontales, las posiciones son
     ! las alturas, es decir, buscamos 'indices en la vertical
     ! y viceversa
+    ! el ultimo parametro indica en que malla toma el 'indice
+    ! 1 es para la malla principal y 2 es para las de velocidad
     !
-    call determina_indices(promedio_perfilv,xp,mi+1,1) !indices en malla principal
-    call determina_indices(promedio_perfilh,yp,nj+1,1) !indices en lamma principal
-    call determina_indices(promedio_perfilv,xu,mi,2)   !indices en vel
-    call determina_indices(promedio_perfilh,yv,nj,2)   !indices en vel
+    call determina_indices_horizontal(promedio_perfilv,xp,mi+1,1) !indices en malla principal
+    call determina_indices_vertical(promedio_perfilh,yp,nj+1,1)   !indices en lamma principal
+    call determina_indices_horizontal(promedio_perfilv,xu,mi,2)   !indices en velu
+    call determina_indices_vertical(promedio_perfilh,yv,nj,2)     !indices en velv
     !call determina_indices_horizontal(velu_promedio_perfilv,xu,mi)
     !call determina_indices_vertical(velu_promedio_perfilh,yp,nj+1)
     !call determina_indices_horizontal(velv_promedio_perfilv,xp,mi+1)
@@ -196,37 +198,38 @@ contains
   ! en el caso de yv, est'a sobredimensionado
   !
   !***************************************************************
-!   subroutine determina_indices_vertical(prom_perf, xx, nn)
-!     !
-!     implicit none
-!     !
-!     class( tipo_promedio_perfil ), intent(inout) :: prom_perf
-!     !
-!     real(kind=DBL), dimension(nj+1), intent(in)  :: xx
-!     integer, intent(in) :: nn
-!     !
-!     integer :: ii, kk
-!     !
-!     ! Se usa la variable kk para recorrer las posiciones de los perfiles
-!     !
-!     kk = 1
-!     !
-!     do ii = 1, nn
-!        !
-!        ! Se comparan las alturas de la malla con las alturas deseadas
-!        ! que est'an en el primer 'indice del arreglo prom de la estructura.
-!        ! Se guardan los 'indices de los nodos m'as cercanos a la altura
-!        ! indicada (cercano por arriba)
-!        !
-!        if( prom_perf % valor_prom(kk,1) < xx(ii) .and. kk <= &
-!             & prom_perf % nposi) then
-!           prom_perf % indi_posi(kk) = ii
-!           kk = kk+1
-!        end if
-!        !
-!     end do
-!     !
-!   end subroutine determina_indices_vertical
+  subroutine determina_indices_vertical(prom_perf, xx, nn, indice)
+    !
+    implicit none
+    !
+    class( tipo_promedio_perfil ), intent(inout) :: prom_perf
+    !
+    real(kind=DBL), dimension(nj+1), intent(in)  :: xx
+    integer, intent(in) :: nn
+    integer, intent(in) :: indice
+    !
+    integer :: ii, kk
+    !
+    ! Se usa la variable kk para recorrer las posiciones de los perfiles
+    !
+    kk = 1
+    !
+    do ii = 1, nn
+       !
+       ! Se comparan las alturas de la malla con las alturas deseadas
+       ! que est'an en el primer 'indice del arreglo prom de la estructura.
+       ! Se guardan los 'indices de los nodos m'as cercanos a la altura
+       ! indicada (cercano por arriba)
+       !
+       if( prom_perf % valor_prom(kk,1) < xx(ii) .and. kk <= &
+            & prom_perf % nposi) then
+          prom_perf % indi_posi(kk, indice) = ii
+          kk = kk+1
+       end if
+       !
+    end do
+    !
+  end subroutine determina_indices_vertical
   !
   !************************************************************
   ! postpro_promedio
