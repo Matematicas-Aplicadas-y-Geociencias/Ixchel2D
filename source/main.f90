@@ -74,7 +74,9 @@ PROGRAM IXCHEL2D
   use solucionador, only : tridiagonal
   !
   ! Subrutinas de postproceso
-  ! 
+  !
+  use postproceso, only  : inicializa_promedio_perfil
+  use postproceso, only  : finaliza_promedio_perfil
   use postproceso, only  : nusselt_promedio_y, postproceso_vtk
   use postproceso, only  : postproceso_bin, entero_caracter
   use postproceso, only  : postprocesa_parametros, postpro_promedio
@@ -344,11 +346,19 @@ PROGRAM IXCHEL2D
   !
   ! call definir_cuerpo(gamma_momen, gamma_energ, 'horno')
   !
-  !----------------------------------------------
+  !--------------------------------------------------
   !
   ! Lectura de archivo para los promedios de perfiles
   !
   call lectura_archivo_prom()
+  !
+  file_name = 'perfil_n'//trim(njc)//'m'//trim(mic)//'_R'&
+       &//trim(Rec)//'.dat'
+  !
+  ! Se abre el archivo para almacenar los promedios en los
+  ! perfiles
+  !
+  call inicializa_promedio_perfil(file_name)
   !
   !----------------------------------------------
   !
@@ -1272,10 +1282,7 @@ PROGRAM IXCHEL2D
            !
            write(*,*) 'ITERACION: ',itera,tiempo,maxbo,residuo
            !
-           file_name = 'perfil_n'//trim(njc)//'m'//trim(mic)//'_R'&
-                &//trim(Rec)//'.dat'
-           !
-           call postpro_promedio('horiz', tiempo, temp, u, v, file_name)
+           call postpro_promedio('horiz', tiempo, temp, u, v)
            !
         end if
         !
@@ -1424,5 +1431,9 @@ PROGRAM IXCHEL2D
      end if ! Postprocesar
      !
   end do !*********** final del repetidor principal
+  !
+  ! Cierre de archivos de postproceso
+  !
+  call finaliza_promedio_perfil()
   !
 end program IXCHEL2D
