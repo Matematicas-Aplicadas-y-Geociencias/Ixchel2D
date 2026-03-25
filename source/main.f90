@@ -766,7 +766,7 @@ PROGRAM IXCHEL2D
                  exit
               else if (iter_ecuaci > iter_ecuaci_max) then
                  iter_ecuaci = 0
-                 write(*,*) "ADVER. MOMEN: convergencia no alcanzada ", error
+                 ! write(*,*) "ADVER. MOMEN: convergencia no alcanzada ", error
                  exit
               else
                  iter_ecuaci = iter_ecuaci+1
@@ -964,7 +964,7 @@ PROGRAM IXCHEL2D
                  exit
               else if (iter_ecuaci > iter_ecuaci_max) then
                  iter_ecuaci = 0
-                 write(*,*) "ADVER. PRES: convergencia no alcanzada ", error
+                 ! write(*,*) "ADVER. PRES: convergencia no alcanzada ", error
                  exit
               else
                  iter_ecuaci = iter_ecuaci+1
@@ -1282,7 +1282,7 @@ PROGRAM IXCHEL2D
            !
            write(*,*) 'ITERACION: ',itera,tiempo,maxbo,residuo
            !
-           call postpro_promedio('horiz', tiempo, temp, u, v)
+           call postpro_promedio( tiempo, temp, u, v )
            !
         end if
         !
