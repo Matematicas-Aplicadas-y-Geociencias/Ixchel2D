@@ -314,18 +314,18 @@ contains
     do kk=1, promedio_perfilh%nposi
        !
        if (promedio_perfilh % variable(1)) then
-          call integral_perfil(promedio_perfilh%valor_prom(kk,2),&
+          call integral_prom_perfil(promedio_perfilh%valor_prom(kk,2),&
                & u_o(1:mi,promedio_perfilh % indi_posi(kk,1)), deltaxu, 1, mi)
 
        end if
        !
        if (promedio_perfilh % variable(2)) then
-          call integral_perfil(promedio_perfilh%valor_prom(kk,3),&
+          call integral_prom_perfil(promedio_perfilh%valor_prom(kk,3),&
                & v_o(1:mi+1,promedio_perfilh % indi_posi(kk,2)),deltaxp, 1, mi+1)
        end if
        !
        if (promedio_perfilh % variable(3)) then
-          call integral_perfil(promedio_perfilh%valor_prom(kk,4),&
+          call integral_prom_perfil(promedio_perfilh%valor_prom(kk,4),&
                & temp_o(1:mi+1,promedio_perfilh % indi_posi(kk,2)),deltaxp, 1, mi+1)
        end if
        !
@@ -334,17 +334,17 @@ contains
     do kk=1, promedio_perfilv%nposi
        !
        if (promedio_perfilv % variable(1)) then
-          call integral_perfil(promedio_perfilv%valor_prom(kk,2),&
+          call integral_prom_perfil(promedio_perfilv%valor_prom(kk,2),&
                & u_o(promedio_perfilv % indi_posi(kk,2),1:nj+1), deltayp, 1, nj+1)
        end if
        !
        if (promedio_perfilv % variable(2)) then
-          call integral_perfil(promedio_perfilv%valor_prom(kk,3),&
+          call integral_prom_perfil(promedio_perfilv%valor_prom(kk,3),&
                & v_o(promedio_perfilv % indi_posi(kk,1),1:nj), deltayv, 1, nj)
        end if
        !
        if (promedio_perfilv % variable(3)) then
-          call integral_perfil(promedio_perfilv%valor_prom(kk,4),&
+          call integral_prom_perfil(promedio_perfilv%valor_prom(kk,4),&
                & temp_o(promedio_perfilv % indi_posi(kk,2),1:nj+1), deltayp, 1, nj+1)
        end if
        !
@@ -356,36 +356,42 @@ contains
   end subroutine postpro_promedio
   !
   !************************************************************
-  ! integral_perfil
+  ! integral_prom_perfil
   !
   ! subrutina que calcula la integral de lineas horizontales
   !
   !************************************************************
   !
-  subroutine integral_perfil(integral, arr_var, paso, e_i, e_f)
+  subroutine integral_prom_perfil(integral, arr_var, delta, e_i, e_f)
     !
     implicit none
     !
     real(kind=DBL), intent(out)    :: integral
     real(kind=DBL), intent(in)     :: arr_var(:) ! arreglo de variable (velu, velv, temp)
-    real(kind=DBL), intent(in)     :: paso(:)    ! delta dependiendo de la malla
+    real(kind=DBL), intent(in)     :: delta(:)   ! delta dependiendo de la malla
     integer, intent(in)            :: e_i        ! indice extremo inicial
     integer, intent(in)            :: e_f        ! indice extremo final
     !
-    integer :: ii, nn
+    real(kind=DBL) :: longi  ! longitud del segmento a integrar
+    integer        :: ii, nn
     !
     nn = (e_f+1)-e_i
     !
+    longi = 0.0_DBL
+    longi = longi + delta(e_i)
+    !
     integral = 0.0_DBL
-    integral = arr_var(e_i)*(paso(e_i)/2.0_DBL)
+    integral = arr_var(e_i)*(delta(e_i)/2.0_DBL)
     !
     do ii = e_i+1, e_f-1
-       integral= integral + ( arr_var(ii) + arr_var(ii+1) ) * paso(ii) * 0.5_DBL
+       integral = integral + ( arr_var(ii) + arr_var(ii+1) ) * delta(ii) * 0.5_DBL
+       longi = longi + delta(ii)
     end do
     !
-    integral= integral + arr_var(e_f)*(paso(e_f-1)/2.0_DBL)
+    integral = integral + arr_var(e_f)*(delta(e_f-1)/2.0_DBL)
+    integral = integral/longi
     !
-  end subroutine integral_perfil
+  end subroutine integral_prom_perfil
   !
   !************************************************************
   !
