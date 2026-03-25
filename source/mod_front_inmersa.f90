@@ -62,7 +62,7 @@ contains
     !
     integer :: num_archivos   ! n'umero de archivos para definir la front. inmersa
     !
-    character(len=64) :: archivo ! nombre del archivo a lee
+    character(len=64) :: archivo ! nombre del archivo a leer
     !r
     integer :: kk
     !
@@ -187,8 +187,8 @@ contains
                    !
                    gamma_momeno(ii,jj) = 10.0e20_DBL
                    !
-		   gamma_energ(ii,jj) = 10.0e-10_DBL
-		   !
+                   gamma_energ(ii,jj) = 10.0e-10_DBL
+                   !
                    fuente_lin_t(ii,jj) =-10.0e40_DBL
                    fuente_con_t(ii,jj) = 10.0e40_DBL*10.0e-5_DBL
                    !

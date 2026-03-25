@@ -5,15 +5,387 @@
 ! de salida y archivos de postproceso, adem'as contiene subrutinas
 ! de entrada de datos
 !
-! Autor: J.C. Cajas
+! Autor: J.C. Cajas, K. Figueroa
 !
 module postproceso
   !
-  use malla, only :  mi, nj, DBL
+  use malla, only : mi, nj, DBL
+  use malla, only : deltaxp, xp
+  use malla, only : deltayp, yp
+  use malla, only : deltaxu, xu
+  use malla, only : deltayv, yv
   !
   implicit none
   !
+  ! Formatos de salida
+  !
+  character(len=13), parameter :: form44="(129E25.15E3)"
+  !
+  type tipo_promedio_perfil
+     !
+     ! Estructura de datos para calcular cantidades promedio en cortes horizontales
+     ! o verticales. Se crea una estructura r\'igida con capacidad de almacenar 20
+     ! cortes. Si se necesitan m'as hay que modificar la dimensi'on del arreglo
+     ! posicion del tipo
+     ! 
+     character(len=5)                :: orienta     ! Orientacion (horiz/verti)
+     integer                         :: nposi       ! n'umero de posiciones
+     real(kind=DBL), dimension(16,4) :: valor_prom  ! posicion,cantidad promediada
+     integer, dimension(16,2)        :: indi_posi   ! indices entero de la posicion
+     logical, dimension(3)           :: variable    ! indicador velu, velv, temp
+     !
+  end type tipo_promedio_perfil
+  !
+  ! Se declaran variables para calcular promedios en perfiles por defecto
+  !
+  type( tipo_promedio_perfil )       :: promedio_perfilh, promedio_perfilv
+  !
 contains
+  !---------------------------------------------------------------
+  !
+  !***************************************************************
+  !
+  ! inicializa_promedio_perfil
+  !
+  !
+  ! Se abre el archivo que se usar\'a para guardar los promedios. Este archivo se
+  ! cierra al finalizar la simulaci'on a trav'es de la subrutina finaliza_postpro
+  !
+  !***************************************************************
+  subroutine inicializa_promedio_perfil(file_name)
+    !
+    implicit none
+    !
+    character(32),  intent(in)    :: file_name
+    !
+    write(*,*)" "
+    write(*,*)"---------------------------------------------------------------"
+    write(*,*)"Ixchel2D: se crea el archivo de perfiles que almacena promedios"
+    write(*,*)"   archivo: ", file_name
+    write(*,*)" "
+    !
+    open(unit = 76,file=file_name)
+    !
+  end subroutine inicializa_promedio_perfil
+  !
+  !***************************************************************
+  !
+  ! finaliza_promedio_perfil
+  !
+  ! Esta subrutina finaliza la escritura de promedio_perfil
+  ! cerrando el archivos de datos
+  !
+  !***************************************************************
+  subroutine finaliza_promedio_perfil()
+    !
+    implicit none
+    !
+    write(*,*) " "
+    write(*,*) "------------------------------------------------------------------"
+    write(*,*) "Ixchel2D: se cierra el archivo de perfiles para calcular promedios" 
+    close(76)
+    !
+  end subroutine finaliza_promedio_perfil
+  !
+  !***************************************************************
+  !
+  ! inicializa_promedio_perfil
+  !
+  ! Esta subrutina inicializa la estructura de datos promedio_perfil
+  !
+  !***************************************************************
+  subroutine inicializa_estruct_promedio_perfil(prom_perf)
+    !
+    implicit none
+    !
+    class( tipo_promedio_perfil ), intent(inout) :: prom_perf
+    !
+    prom_perf % orienta    = 'aaaaz'
+    prom_perf % nposi      = -2
+    prom_perf % indi_posi  = -2
+    prom_perf % valor_prom(:,:) = -444.0_DBL
+    prom_perf % variable   = .true.
+    !
+  end subroutine inicializa_estruct_promedio_perfil
+  !
+  !
+  !***************************************************************
+  !
+  ! configura_perfil_defecto
+  !
+  ! Esta subrutina configura la posici'on de los perfiles para
+  ! calcular promedios en caso de que no exista el archivo de
+  ! configuraci'on
+  !
+  !***************************************************************
+  subroutine configura_perfil_defecto()
+    !
+    implicit none
+    !
+    integer :: kk
+    !
+    promedio_perfilh % variable(:) = .true.
+    !
+    ! Se definen tres posiciones de perfiles con distribuci\'on uniforme
+    !
+    promedio_perfilh % orienta = 'horiz'
+    promedio_perfilh % nposi   = 3
+    !
+    do kk=1, promedio_perfilh % nposi
+       !
+       promedio_perfilh % valor_prom(kk,1) = real(kk,DBL)*yp(nj+1)/4._DBL
+       !
+    end do
+    !
+    promedio_perfilv % variable(:) = .true.
+    !
+    ! Se definen tres posiciones de perfiles con distribuci\'on uniforme
+    !
+    promedio_perfilv % orienta = 'verti'
+    promedio_perfilv % nposi   = 3
+    !
+    do kk=1, promedio_perfilv % nposi
+       !
+       promedio_perfilv % valor_prom(kk,1) = real(kk,DBL)*xp(mi+1)/4._DBL
+       !
+    end do
+    !
+  end subroutine configura_perfil_defecto
+  !
+  !************************************************************
+  ! lectura_archivo_prom
+  !
+  ! subrutina que lee el archivo que contiene el numero de integrales
+  ! y las alturas a las que se desea hacerlas.
+  !
+  !************************************************************
+  !
+  subroutine lectura_archivo_prom()
+    !
+    implicit none
+    !
+    character(len=64) :: alturas ! nombre del archivo a leer
+    integer           :: kk, ii
+    !
+    logical           :: existe_archivo
+    !
+    ! Inicializaci'on de los valores para las estructuras posibles
+    !
+    call inicializa_estruct_promedio_perfil(promedio_perfilh)
+    call inicializa_estruct_promedio_perfil(promedio_perfilv)
+    !
+    ! Se abre el archivo de entrada de los perfiles a promediar, y se leen las
+    ! posiciones de los perfiles
+    !
+    write(*,*) "---------------------------------------------------------------------"
+    write(*,*) "Ixchel2D: Se lee informaci'on de los perfiles para calcular promedios"
+    !
+    inquire(file='perfil_promedio.dat',exist=existe_archivo)
+    !
+    if( existe_archivo )then
+       !
+       open(77, file='perfil_promedio.dat')
+       !
+       ! Se leen los indicadores velu, velv, temp para perfiles horizontales
+       !
+       read(77,*) promedio_perfilh % variable(1), promedio_perfilh % variable(2),&
+            promedio_perfilh % variable(3)
+       !
+       !Se leen las orientaciones y sus respectivas ubicaciones de perfiles
+       !
+       read(77,*) promedio_perfilh % orienta, promedio_perfilh % nposi
+       !
+       do kk=1, promedio_perfilh % nposi
+          !
+          read(77,*) promedio_perfilh % valor_prom(kk,1)
+          !
+       end do
+       !
+       read(77,*) promedio_perfilv % orienta, promedio_perfilv % nposi
+       !
+       do kk=1, promedio_perfilv % nposi
+          !
+          read(77,*) promedio_perfilv % valor_prom(kk,1)
+          !
+       end do
+       !
+       ! Se igualan los indicadores para perfiles verticales
+       !
+       promedio_perfilv % variable(1) = promedio_perfilh % variable(1) ! indicador velu
+       promedio_perfilv % variable(2) = promedio_perfilh % variable(2) ! indicador velv
+       promedio_perfilv % variable(3) = promedio_perfilh % variable(3) ! indicador temp
+       !
+       close(77)
+       !
+    else
+       !
+       call configura_perfil_defecto()
+       !
+       write(*,*)" "
+       write(*,*)"Ixchel2D: se configura posici'on de perfiles con opciones por defecto"
+       write(*,*)" "
+       !
+    end if
+    !
+    write(*,*)"Ixchel2D: finaliza lectura de informaci'on de los perfiles para promedios"
+    write(*,*)"-------------------------------------------------------------------------"
+    !
+    ! Se determinan los \'indices para las posiciones deseadas
+    ! Cuando los perfiles son horizontales, las posiciones son
+    ! las alturas, es decir, buscamos 'indices en la vertical
+    ! y viceversa el ultimo parametro indica en que malla toma el 'indice
+    ! 2 es para la malla principal y 1 es para las de velocidad
+    !
+    call determina_indices(promedio_perfilv,xp,2) !indices malla principal
+    call determina_indices(promedio_perfilh,yp,2) !indices malla principal
+    call determina_indices(promedio_perfilv,xu,1) !indices en velu
+    call determina_indices(promedio_perfilh,yv,1) !indices en velv
+    !
+  end subroutine lectura_archivo_prom
+  !
+  !***************************************************************
+  ! determina_indices
+  !
+  ! Subrutina que determina los \'indices m\'as cercanos para las
+  ! posiciones deseadas de los perfiles.
+  ! Se usa un arreglo xx con dimensi\'on mi+1 para usarse con xp y xu
+  ! en el caso de xu, est'a sobredimensionado
+  !
+  !***************************************************************
+  !
+  subroutine determina_indices(prom_perf, xx, indi_mem)
+    !
+    implicit none
+    !
+    class( tipo_promedio_perfil ), intent(inout) :: prom_perf
+    !
+    real(kind=DBL), intent(in) :: xx(:)
+    integer, intent(in)        :: indi_mem  ! 'indice memoria, distingue xu de xp
+    !
+    integer :: ii, kk, longi
+    ! -----------------------------------------------------------
+    !
+    ! Se determina el tamanio del arreglo de coordenadas recibido
+    !
+    longi = size(xx)
+    !
+    ! Se usa la variable kk para recorrer las posiciones de los perfiles
+    !
+    kk = 1
+    !
+    do ii = 1, longi
+       !
+       ! Se comparan las alturas de la malla con las alturas deseadas
+       ! que est'an en el primer 'indice del arreglo prom de la estructura.
+       ! Se guardan los 'indices de los nodos m'as cercanos a la altura
+       ! indicada (cercano por arriba)
+       !
+       if( prom_perf % valor_prom(kk,1) < xx(ii) .and. kk <= &
+            & prom_perf % nposi) then
+          prom_perf % indi_posi(kk,indi_mem) = ii
+          kk = kk+1
+       end if
+       !
+    end do
+    !
+  end subroutine determina_indices
+  !
+  !************************************************************
+  ! postpro_promedio
+  !
+  ! subrutina que calcula el promedio de la temperatura a lo
+  ! largo del tiempo. Crea un archivo de slida con los datos
+  ! el archivo de salida es la unidad 76
+  !
+  !************************************************************
+  !
+  subroutine postpro_promedio(tiempo, temp_o, u_o, v_o)
+    !
+    implicit none
+    !
+    real(kind=DBL), dimension(mi+1,nj+1), intent(in)  :: temp_o
+    real(kind=DBL), dimension(mi,nj+1),   intent(in)  :: u_o
+    real(kind=DBL), dimension(mi+1,nj),   intent(in)  :: v_o
+    !
+    !character(5),   intent(in)    :: opcion
+    real(kind=DBL), intent(in)    :: tiempo
+    integer                       :: kk, ii
+    !
+    do kk=1, promedio_perfilh%nposi
+       !
+       if (promedio_perfilh % variable(1)) then
+          call integral_perfil(promedio_perfilh%valor_prom(kk,2),&
+               & u_o(1:mi,promedio_perfilh % indi_posi(kk,1)), deltaxu, 1, mi)
+
+       end if
+       !
+       if (promedio_perfilh % variable(2)) then
+          call integral_perfil(promedio_perfilh%valor_prom(kk,3),&
+               & v_o(1:mi+1,promedio_perfilh % indi_posi(kk,2)),deltaxp, 1, mi+1)
+       end if
+       !
+       if (promedio_perfilh % variable(3)) then
+          call integral_perfil(promedio_perfilh%valor_prom(kk,4),&
+               & temp_o(1:mi+1,promedio_perfilh % indi_posi(kk,2)),deltaxp, 1, mi+1)
+       end if
+       !
+    end do
+    !
+    do kk=1, promedio_perfilv%nposi
+       !
+       if (promedio_perfilv % variable(1)) then
+          call integral_perfil(promedio_perfilv%valor_prom(kk,2),&
+               & u_o(promedio_perfilv % indi_posi(kk,2),1:nj+1), deltayp, 1, nj+1)
+       end if
+       !
+       if (promedio_perfilv % variable(2)) then
+          call integral_perfil(promedio_perfilv%valor_prom(kk,3),&
+               & v_o(promedio_perfilv % indi_posi(kk,1),1:nj), deltayv, 1, nj)
+       end if
+       !
+       if (promedio_perfilv % variable(3)) then
+          call integral_perfil(promedio_perfilv%valor_prom(kk,4),&
+               & temp_o(promedio_perfilv % indi_posi(kk,2),1:nj+1), deltayp, 1, nj+1)
+       end if
+       !
+    end do
+    !
+    write(76,form44) tiempo, promedio_perfilh%valor_prom(:,:), &
+         promedio_perfilv%valor_prom(:,:)
+    !
+  end subroutine postpro_promedio
+  !
+  !************************************************************
+  ! integral_perfil
+  !
+  ! subrutina que calcula la integral de lineas horizontales
+  !
+  !************************************************************
+  !
+  subroutine integral_perfil(integral, arr_var, paso, e_i, e_f)
+    !
+    implicit none
+    !
+    real(kind=DBL), intent(out)    :: integral
+    real(kind=DBL), intent(in)     :: arr_var(:) ! arreglo de variable (velu, velv, temp)
+    real(kind=DBL), intent(in)     :: paso(:)    ! delta dependiendo de la malla
+    integer, intent(in)            :: e_i        ! indice extremo inicial
+    integer, intent(in)            :: e_f        ! indice extremo final
+    !
+    integer :: ii, nn
+    !
+    nn = (e_f+1)-e_i
+    !
+    integral = 0.0_DBL
+    integral = arr_var(e_i)*(paso(e_i)/2.0_DBL)
+    !
+    do ii = e_i+1, e_f-1
+       integral= integral + ( arr_var(ii) + arr_var(ii+1) ) * paso(ii) * 0.5_DBL
+    end do
+    !
+    integral= integral + arr_var(e_f)*(paso(e_f-1)/2.0_DBL)
+    !
+  end subroutine integral_perfil
   !
   !************************************************************
   !
@@ -148,29 +520,29 @@ contains
     ! directorio
     !
     open(unit=10, file=directorio)
-      write (10,*) 'numero de Rayleigh                    ', Ra
-      write (10,*) 'numero de Prandtl                     ', Pr
-      write (10,*) 'incremento de tiempo                  ', dt
-      write (10,*) 'iteraciones maximas                   ', itermax
-      write (10,*) 'paquete de iteraciones                ', paq_itera
-      write (10,*) 'numero de Richardson                  ', Ri_1
-      write (10,*) 'relajacion de la presion              ', rel_pres
-      write (10,*) 'relajacion de la velocidad            ', rel_vel
-      write (10,*) 'relajacion de la temperatura          ', rel_ener
-      write (10,*) 'convergencia de la velocidad          ', conv_u
-      write (10,*) 'convergencia de la temperatura        ', conv_t
-      write (10,*) 'convergencia de la presion            ', conv_p
-      write (10,*) 'convergencia del residuo              ', conv_resi
-      write (10,*) 'convergencia del paso de tiempo       ', conv_paso
-      write (10,*) 'iteraciones maximas de SIMPLE         ', iter_simple_max
-      write (10,*) 'iteraciones maximas de las ecuaciones ', iter_ecuaci_max
-      write (10,*) 'archivo de entrada para u             ', entrada_u
-      write (10,*) 'archivo de entrada para v             ', entrada_v
-      write (10,*) 'archivo de entrada para t y p         ', entrada_tp
-      write (10,*) 'opcion de flujo inicial               ', flujo_ini
-      write (10,*) 'opcion de temperatura inicial         ', tempe_ini
-      write (10,*) 'opcion de postproceso                 ', postpro
-      write (10,*) 'opcion de frontera inmersa            ', fron_inm
+    write (10,*) 'numero de Rayleigh                    ', Ra
+    write (10,*) 'numero de Prandtl                     ', Pr
+    write (10,*) 'incremento de tiempo                  ', dt
+    write (10,*) 'iteraciones maximas                   ', itermax
+    write (10,*) 'paquete de iteraciones                ', paq_itera
+    write (10,*) 'numero de Richardson                  ', Ri_1
+    write (10,*) 'relajacion de la presion              ', rel_pres
+    write (10,*) 'relajacion de la velocidad            ', rel_vel
+    write (10,*) 'relajacion de la temperatura          ', rel_ener
+    write (10,*) 'convergencia de la velocidad          ', conv_u
+    write (10,*) 'convergencia de la temperatura        ', conv_t
+    write (10,*) 'convergencia de la presion            ', conv_p
+    write (10,*) 'convergencia del residuo              ', conv_resi
+    write (10,*) 'convergencia del paso de tiempo       ', conv_paso
+    write (10,*) 'iteraciones maximas de SIMPLE         ', iter_simple_max
+    write (10,*) 'iteraciones maximas de las ecuaciones ', iter_ecuaci_max
+    write (10,*) 'archivo de entrada para u             ', entrada_u
+    write (10,*) 'archivo de entrada para v             ', entrada_v
+    write (10,*) 'archivo de entrada para t y p         ', entrada_tp
+    write (10,*) 'opcion de flujo inicial               ', flujo_ini
+    write (10,*) 'opcion de temperatura inicial         ', tempe_ini
+    write (10,*) 'opcion de postproceso                 ', postpro
+    write (10,*) 'opcion de frontera inmersa            ', fron_inm
     close(unit=10)
     !
     !
@@ -461,9 +833,9 @@ contains
   !************************************************************
   !
   function entero_caracter(entero)
-    
+
     implicit none
-    
+
     character(6)        :: entero_caracter 
     integer, intent(in) :: entero
 

@@ -75,10 +75,13 @@ PROGRAM IXCHEL2D
   !
   ! Subrutinas de entrada y postproceso
   !
+  use postproceso, only  : inicializa_promedio_perfil
+  use postproceso, only  : finaliza_promedio_perfil
   use postproceso, only  : lectura_archivo_parametros
   use postproceso, only  : nusselt_promedio_y, postproceso_vtk
   use postproceso, only  : postproceso_bin, entero_caracter
-  use postproceso, only  : postprocesa_parametros
+  use postproceso, only  : postprocesa_parametros, postpro_promedio
+  use postproceso, only  : lectura_archivo_prom
   !
   ! Variables auxiliares para bucles y n\'umero de iteraciones
   !
@@ -97,6 +100,7 @@ PROGRAM IXCHEL2D
   !
   character(len=28) :: entrada_u,entrada_v,entrada_tp
   character(len=36) :: directorio
+  character(len=36) :: file_name
   character(len=7)  :: adimen
   !
   ! Variables para los archivos de postproceso
@@ -335,6 +339,20 @@ PROGRAM IXCHEL2D
   if( front_inmersa ) call lectura_cuerpo()
   !
   ! call definir_cuerpo(gamma_momen, gamma_energ, 'horno')
+  !
+  !--------------------------------------------------
+  !
+  ! Lectura de archivo para los promedios de perfiles
+  !
+  call lectura_archivo_prom()
+  !
+  file_name = 'perfil_n'//trim(njc)//'m'//trim(mic)//'_R'&
+       &//trim(Rec)//'.dat'
+  !
+  ! Se abre el archivo para almacenar los promedios en los
+  ! perfiles
+  !
+  call inicializa_promedio_perfil(file_name)
   !
   !----------------------------------------------
   !
@@ -742,7 +760,7 @@ PROGRAM IXCHEL2D
                  exit
               else if (iter_ecuaci > iter_ecuaci_max) then
                  iter_ecuaci = 0
-                 write(*,*) "ADVER. MOMEN: convergencia no alcanzada ", error
+                 ! write(*,*) "ADVER. MOMEN: convergencia no alcanzada ", error
                  exit
               else
                  iter_ecuaci = iter_ecuaci+1
@@ -940,7 +958,7 @@ PROGRAM IXCHEL2D
                  exit
               else if (iter_ecuaci > iter_ecuaci_max) then
                  iter_ecuaci = 0
-                 write(*,*) "ADVER. PRES: convergencia no alcanzada ", error
+                 ! write(*,*) "ADVER. PRES: convergencia no alcanzada ", error
                  exit
               else
                  iter_ecuaci = iter_ecuaci+1
@@ -1242,37 +1260,54 @@ PROGRAM IXCHEL2D
            !
         end do ALGORITMO_SIMPLE  !final del algoritmo SIMPLE
         !
-        !-------------------------------------
+        ! -------------------------------------
         !
         ! Escritura de mensajes y postprocesos
         !
-        itera = itera + 1
-        if( mod(itera,500)==0 )write(*,*) 'ITERACION: ',itera,residuo,maxbo
-
-        if( mod(itera,1000)==0 )then
-           !CALL entropia_cvt(x,y,u,xu,v,yv,temp,entropia_calor,entropia_viscosa,entropia,&
+        itera  = itera + 1
+        tiempo = tiempo_inicial+itera*dt
+        !
+        ! --------------------------------------------
+        !
+        ! Se calculan promedios en perfiles definidos.
+        ! Se hacen tres por cada unidad de tiempo 
+        !
+        if( mod(itera, ceiling( 1._DBL/(3._DBL*dt) ) ) == 0 ) then
+           !
+           write(*,*) 'ITERACION: ',itera,tiempo,maxbo,residuo
+           !
+           call postpro_promedio( tiempo, temp, u, v )
+           !
+        end if
+        !
+        !
+        ! if( mod(itera,1000)==0 )then
+           ! !CALL entropia_cvt(x,y,u,xu,v,yv,temp,entropia_calor,entropia_viscosa,entropia,&
            !&entropia_int,temp_int,a_ent,lambda_ent)
            !
            !$acc update self(temp(1:mi+1,1:nj+1)) ! !async(stream2)
            ! $acc parallel !async(stream2)
-           call nusselt_promedio_y(&
-                &xp,yp,deltaxp,deltayp,&
-                &temp,nusselt0,nusselt1,&
-                &placa_min,placa_max&
-                &)
+           ! call nusselt_promedio_y(&
+           !      &xp,yp,deltaxp,deltayp,&
+           !      &temp,nusselt0,nusselt1,&
+           !      &placa_min,placa_max&
+           !      &)
            ! $acc end parallel
            ! $acc wait
            !
-           temp_med = (temp((placa_min+placa_max)/2,nj/2+1)+&
-                &temp((placa_min+placa_max)/2+1,nj/2+1))/2._DBL
-           OPEN(unit = 5,file='nuss_sim_n'//trim(njc)//'m'//trim(mic)//'_R'&
-                &//trim(Rec)//'.dat',access = 'append')
-           WRITE(5,form26) tiempo_inicial+itera*dt,nusselt0,&
-                &-nusselt1,temp_med,temp_int,entropia_int
-           CLOSE(unit = 5)
-        end if
-        !*********************************
-        tiempo   = tiempo_inicial+itera*dt
+           ! temp_med = (temp((placa_min+placa_max)/2,nj/2+1)+&
+           !      &temp((placa_min+placa_max)/2+1,nj/2+1))/2._DBL
+           ! OPEN(unit = 5,file='nuss_sim_n'//trim(njc)//'m'//trim(mic)//'_R'&
+           !      &//trim(Rec)//'.dat',access = 'append')
+           ! WRITE(5,form26) tiempo_inicial+itera*dt,nusselt0,&
+           !      &-nusselt1,temp_med,temp_int,entropia_int
+           ! CLOSE(unit = 5)
+           !
+        ! end if
+        !
+        ! ********************************************************
+        !
+        ! Se actualizan los  arreglos para paso de tiempo anterior
         !
         !$acc parallel loop gang collapse(2) !async(stream1)
         do jj=1, nj+1
@@ -1390,5 +1425,9 @@ PROGRAM IXCHEL2D
      end if ! Postprocesar
      !
   end do !*********** final del repetidor principal
+  !
+  ! Cierre de archivos de postproceso
+  !
+  call finaliza_promedio_perfil()
   !
 end program IXCHEL2D
