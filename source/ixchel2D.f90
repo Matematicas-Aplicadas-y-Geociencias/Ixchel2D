@@ -161,11 +161,13 @@ PROGRAM IXCHEL2D
   !
   ! Mensaje de bienvenida
   !
-  write(*,*) "------------------------------------------"
+  write(*,*) "-------------------------------------------------------"
   write(*,*) " "
-  write(*,*) "                 IXCHEL2D"
+  write(*,*) "                      IXCHEL2D"
   write(*,*) " "
-  write(*,*) "------------------------------------------"
+  write(*,*) "           Simulaciones en termofluidos 2D      "
+  write(*,*) "-------------------------------------------------------"
+  write(*,*) "              "   
   !
   ! Valor por defecto de la variable de control de postproceso
   !
@@ -285,7 +287,7 @@ PROGRAM IXCHEL2D
   !
   ! Lectura de las mallas escalonadas e inicializaci\'on de arreglos
   !
-  write(*,*) "Inicia lectura de mallas"
+  write(*,*) "Ixchel2D: Inicia lectura de mallas"
   call lectura_mallas_escalonadas(entrada_u,entrada_v,entrada_tp,&
        &u_ant,v_ant,pres,temp_ant,&
        &xp,yp,xu,yv,&
@@ -294,8 +296,8 @@ PROGRAM IXCHEL2D
        &deltaxv,deltayv,&
        &fexp,feyp,fexu,feyv,&
        &ao,placa_min,placa_max,itera_inicial)
-  write(*,*) "Finaliza lectura de mallas"
-  write(*,*) "--------------------------"
+  write(*,*) "Ixchel2D: Finaliza lectura de mallas"
+  write(*,*) "------------------------------------"
   ! !*****************
   !valores iniciales
   tiempo_inicial = itera_inicial*dt
@@ -358,17 +360,13 @@ PROGRAM IXCHEL2D
   !
   !************************************************
   !escribe las caracter´isticas de las variable DBL
-  WRITE(*,100) 'IXCHEL2D: Doble ',KIND(var2),PRECISION(var2),RANGE(var2)
-100 FORMAT(1X,A,': kind= ',I2,', Precision= ',I2,' Rango= ',I3)
-  WRITE(*,*)' '
+  write(*,100) 'Ixchel2D: Doble ',kind(var2),precision(var2),range(var2)
+  write(*,*)' '
   !escribe informaci'on de los parametros usados
-  WRITE(*,101) Rec,Pr,Ri_1,rel_pres,rel_vel
-  WRITE(*,102) itera_inicial,mi,nj
-  WRITE(*,106) lambda_ent,a_ent
-  WRITE(*,*)' '
-101 FORMAT(1X,'Re=',A,', Pr=',F8.3', Ri=',F8.3', rel_pres=',F8.3', rel_vel=',F8.3)
-102 FORMAT(1X,'Iteracion inicial=',I7,', mi=',I5,', nj=',I5)
-106 FORMAT(1X,'No. de Eckert=',F13.10,', a_ent=',F15.3)
+  write(*,101) Rec,Pr,Ri_1,rel_pres,rel_vel
+  write(*,102) itera_inicial,mi,nj
+  write(*,*)' '
+
   !--------------------------------------------
   !
   ! Inicio del repetidor principal
@@ -1190,8 +1188,8 @@ PROGRAM IXCHEL2D
                  exit
               else if( iter_ecuaci > iter_ecuaci_max )then
                  iter_ecuaci = 0
-                 write(*,*) "Adver. ENERG: convergencia no alcanzada ", &
-                      error
+                 ! write(*,*) "Adver. ENERG: convergencia no alcanzada ", &
+                 ! error
                  exit
               else
                  iter_ecuaci = iter_ecuaci + 1
@@ -1274,7 +1272,7 @@ PROGRAM IXCHEL2D
         !
         if( mod(itera, ceiling( 1._DBL/(3._DBL*dt) ) ) == 0 ) then
            !
-           write(*,*) 'ITERACION: ',itera,tiempo,maxbo,residuo
+           write(*,106) itera,tiempo,maxbo,residuo
            !
            call postpro_promedio( tiempo, temp, u, v )
            !
@@ -1379,9 +1377,6 @@ PROGRAM IXCHEL2D
      WRITE(*,104) maxbo,residuo
      WRITE(*,105) MAXVAL(ABS(Restemp)),MAXVAL(ABS(Resv))
      WRITE(*,*)' '
-103  FORMAT(1X,'N_Izq=',D23.15,', N_Der=',D23.15)
-104  FORMAT(1X,'b_o  =',D23.15,', Res_u=',D23.15)
-105  FORMAT(1X,'Res_T=',D23.15,', Res_v=',D23.15)
      !********************************
      !*** Formato de escritura dat ***
      !--------------------------------
@@ -1430,4 +1425,16 @@ PROGRAM IXCHEL2D
   !
   call finaliza_promedio_perfil()
   !
+  ! Formatos
+  !
+100 format(1X,A,'kind= ',I2,', Precision= ',I2,' Rango= ',I3)
+101 format(1X,'Re=',A,', Pr=',F8.3', Ri=',F8.3', rel_pres=',F5.2', rel_vel=',F5.2)
+102 format(1X,'Iteracion inicial=',I7,', mi=',I5,', nj=',I5)
+103 format(1X,'N_Izq=',D23.15,', N_Der=',D23.15)
+104 format(1X,'b_o  =',D23.15,', Res_u=',D23.15)
+105 format(1X,'Res_T=',D23.15,', Res_v=',D23.15)
+106 format(1X,"Ixchel2D: iter ",I7, ", tiempo= ",E12.6,", maxbo= ",E12.6,", res_u= ",&
+         &E12.6 )
+  !
 end program IXCHEL2D
+

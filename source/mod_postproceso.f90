@@ -58,10 +58,9 @@ contains
     !
     character(32),  intent(in)    :: file_name
     !
-    write(*,*)" "
-    write(*,*)"---------------------------------------------------------------"
-    write(*,*)"Ixchel2D: se crea el archivo de perfiles que almacena promedios"
-    write(*,*)"   archivo: ", file_name
+    write(*,*)"Ixchel2D: crea el archivo de promedios en perfiles"
+    write(*,*)"   Archivo: ", file_name
+    write(*,*)"-------------------------------------------------------"
     write(*,*)" "
     !
     open(unit = 76,file=file_name)
@@ -81,8 +80,9 @@ contains
     implicit none
     !
     write(*,*) " "
-    write(*,*) "------------------------------------------------------------------"
-    write(*,*) "Ixchel2D: se cierra el archivo de perfiles para calcular promedios" 
+    write(*,*) "Ixchel2D: cierra el archivo de promedios en perfiles   " 
+    write(*,*) "-------------------------------------------------------"
+    !
     close(76)
     !
   end subroutine finaliza_promedio_perfil
@@ -177,8 +177,8 @@ contains
     ! Se abre el archivo de entrada de los perfiles a promediar, y se leen las
     ! posiciones de los perfiles
     !
-    write(*,*) "---------------------------------------------------------------------"
-    write(*,*) "Ixchel2D: Se lee informaci'on de los perfiles para calcular promedios"
+    write(*,*) "-------------------------------------------------------"
+    write(*,*) "Ixchel2D: Lee informaci'on de perfiles para promedios"
     !
     inquire(file='perfil_promedio.dat',exist=existe_archivo)
     !
@@ -222,13 +222,13 @@ contains
        call configura_perfil_defecto()
        !
        write(*,*)" "
-       write(*,*)"Ixchel2D: se configura posici'on de perfiles con opciones por defecto"
+       write(*,*)"Ixchel2D: Configura posici'on de perfiles por defecto"
        write(*,*)" "
        !
     end if
     !
-    write(*,*)"Ixchel2D: finaliza lectura de informaci'on de los perfiles para promedios"
-    write(*,*)"-------------------------------------------------------------------------"
+    write(*,*)"Ixchel2D: Finaliza lectura de perfiles para promedios"
+    write(*,*)" "
     !
     ! Se determinan los \'indices para las posiciones deseadas
     ! Cuando los perfiles son horizontales, las posiciones son
@@ -443,11 +443,12 @@ contains
     !
     ! Mensaje de lectura de par'ametros
     !
-    write(*,*) "Inicia lectura de archivo de par'ametros"
+    write(*,*) "-------------------------------------------------------"
+    write(*,*) "Ixchel2D: Inicia lectura de archivo de configuraci'on  "
     !
     open(unit=10,file='parametros.dat')
     !
-    read (10,*) adimeno                      ! Tipo de adimensionalizaci\'on (tipo de convecci\'on)
+    read (10,*) adimeno        ! Tipo de adimensionalizaci\'on (tipo de convecci\'on)
     !
     if( adimeno == 'mixta'   ) read(10,*) Rao, Pro, Rio ! n'umero de Reynolds, Prandtl, Richardson
     if( adimeno == 'natural' ) read(10,*) Rao, Pro      ! n'umero de Rayleigh, Prandtl
@@ -469,8 +470,8 @@ contains
     !
     ! Mensaje de finalizaci'on de la lectura del archivo de par'ametros
     !
-    write(*,*) "Finaliza lectura de archivo de par'ametros"
-    write(*,*) "------------------------------------------"
+    write(*,*) "Ixchel2D: Finaliza lectura de archivo de par'ametros   "
+    write(*,*) "-------------------------------------------------------"
     !
   end subroutine lectura_archivo_parametros
   !
