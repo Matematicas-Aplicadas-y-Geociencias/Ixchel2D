@@ -951,7 +951,7 @@ PROGRAM IXCHEL2D
               !
               ! $acc wait
               if( error<conv_p )then
-                 ! write(*,*) "PRES: convergencia ", error, " con ", iter_ecuaci," iteraciones"
+                 !write(*,*)"PRES: conver ", error," con ",iter_ecuaci," iteraciones"
                  iter_ecuaci = 0
                  exit
               else if (iter_ecuaci > iter_ecuaci_max) then
@@ -962,6 +962,7 @@ PROGRAM IXCHEL2D
                  iter_ecuaci = iter_ecuaci+1
                  ! write(*,*) 'corrector presion ',error,maxbo
               end if
+              !
            end do correccion_presion
            !$acc wait
            !--------------------------------------------
@@ -1221,6 +1222,7 @@ PROGRAM IXCHEL2D
                       &temp,pres,Ri,dt,rel_vel,&
                       &Resu,&
                       &ii,jj)
+                 !
               end do bucle_residuo_direccion_x
               !
            end do bucle_residuo_direccion_y
@@ -1231,10 +1233,10 @@ PROGRAM IXCHEL2D
            ! residuo del algoritmo
            !
            residuo = 0.0_DBL
-           !$acc parallel loop collapse(2) reduction(+:residuo) !async(stream1)
+           !$acc parallel loop collapse(2) reduction(max:residuo) !async(stream1)
            calculo_maximo_residuou: do jj=2, nj
               do ii = 2, mi-1
-                 residuo = residuo + dabs(Resu(ii,jj))*deltaxu(ii)*deltayp(jj)
+                 residuo = max(residuo, dabs(Resu(ii,jj)) )
                  ! residuo = residuo + Resu(ii,jj)*Resu(ii,jj)
               end do
            end do calculo_maximo_residuou
@@ -1247,12 +1249,12 @@ PROGRAM IXCHEL2D
               exit
            else if ( iter_simple > iter_simple_max ) then
               iter_simple = 0
-              ! write(*,*) "Advertencia SIMPLE: convergencia no alcanzada, ", residuo,maxbo   
+              !write(*,*)"Advertencia SIMPLE: convergencia no alcanzada,", residuo,maxbo  
               exit
            else
               iter_simple = iter_simple + 1
               write(102,*) 'SIMPLE', iter_simple, maxbo, residuo
-              ! write(*,*) 'tiempo ',itera,res_fluido_u,MAXVAL(ABS(Resu)),MAXVAL(ABS(b_o)),&
+              !write(*,*)'tiempo ',itera,res_fluido_u,MAXVAL(ABS(Resu)),MAXVAL(ABS(b_o)),&
                    ! &MAXVAL(ABS(pres))
            end if
            !
@@ -1272,7 +1274,9 @@ PROGRAM IXCHEL2D
         !
         if( mod(itera, ceiling( 1._DBL/(3._DBL*dt) ) ) == 0 ) then
            !
-           write(*,106) itera,tiempo,maxbo,residuo
+           ! Mensaje de avance de simulaci'on
+           !
+           write(*,106) tiempo,maxbo,residuo
            !
            call postpro_promedio( tiempo, temp, u, v )
            !
@@ -1372,11 +1376,11 @@ PROGRAM IXCHEL2D
         vf(ii,nj+1) = v(ii,nj)
      END DO
      !************************************
-     WRITE(*,*) 'itera_total=',itera_total
-     WRITE(*,103) nusselt0,nusselt1
-     WRITE(*,104) maxbo,residuo
-     WRITE(*,105) MAXVAL(ABS(Restemp)),MAXVAL(ABS(Resv))
-     WRITE(*,*)' '
+     ! WRITE(*,*) 'itera_total=',itera_total
+     ! WRITE(*,103) nusselt0,nusselt1
+     WRITE(*,104) itera_total
+     ! WRITE(*,105) MAXVAL(ABS(Restemp)),MAXVAL(ABS(Resv))
+     ! WRITE(*,*)' '
      !********************************
      !*** Formato de escritura dat ***
      !--------------------------------
@@ -1411,11 +1415,11 @@ PROGRAM IXCHEL2D
         !
         ! *************************************
         ! *** Formato escritura VTK ***********
-        ! sample  = m//ce//de//un//dec
-        archivo = 'n'//trim(njc)//'m'//trim(mic)//'R'//trim(Rec)//'/t_'//m//ce//de//un//dec//'.vtk'
+        !
+        archivo = 'n'//trim(njc)//'m'//trim(mic)//'R'//trim(Rec)//'/t_'//m//ce//&
+             &de//un//dec//'.vtk'
         call postproceso_bin(xu,yv,xp,yp,u,v,pres,temp,b_o,Rec)
         call postproceso_vtk(xp,yp,uf,vf,pres,temp,b_o,archivo)
-        ! CALL postproceso_vtk(xp,yp,uf,vf,pres,temp,b_o,archivo)
         !
      end if ! Postprocesar
      !
@@ -1431,9 +1435,9 @@ PROGRAM IXCHEL2D
 101 format(1X,'Re=',A,', Pr=',F8.3', Ri=',F8.3', rel_pres=',F5.2', rel_vel=',F5.2)
 102 format(1X,'Iteracion inicial=',I7,', mi=',I5,', nj=',I5)
 103 format(1X,'N_Izq=',D23.15,', N_Der=',D23.15)
-104 format(1X,'b_o  =',D23.15,', Res_u=',D23.15)
+104 format(1X,"Ixchel2D: iter_total=", I7)
 105 format(1X,'Res_T=',D23.15,', Res_v=',D23.15)
-106 format(1X,"Ixchel2D: iter ",I7, ", tiempo= ",E9.3,", maxbo= ",E9.3,", res_u= ",&
+106 format(1X,"Ixchel2D: tiempo= ",E9.3,", maxbo= ",E9.3,", res_u= ",&
          &E9.3 )
   !
 end program IXCHEL2D
