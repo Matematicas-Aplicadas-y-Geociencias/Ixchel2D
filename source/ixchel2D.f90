@@ -1432,7 +1432,7 @@ PROGRAM IXCHEL2D
   ! Formatos
   !
 100 format(1X,A,'kind= ',I2,', Precision= ',I2,' Rango= ',I3)
-101 format(1X,'Re=',A,', Pr=',F8.3', Ri=',F8.3', rel_pres=',F5.2', rel_vel=',F5.2)
+101 format(1X,'R =',A,', Pr=',F8.3', Ri=',F8.3', rel_pres=',F5.2', rel_vel=',F5.2)
 102 format(1X,'Iteracion inicial=',I7,', mi=',I5,', nj=',I5)
 103 format(1X,'N_Izq=',D23.15,', N_Der=',D23.15)
 104 format(1X,"Ixchel2D: iter_total=", I7)
