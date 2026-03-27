@@ -12,7 +12,7 @@ MODULE malla
   !
   ! Dimensiones de la malla
   !
-  INTEGER(4), PARAMETER :: mi=50, nj=200, nsolid = 7
+  INTEGER(4), PARAMETER :: mi=75, nj=2700, nsolid = 7
   !
   ! Tipo de variables reales, definen precici'on y rango
   !
