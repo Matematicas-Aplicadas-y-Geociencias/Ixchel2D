@@ -1282,31 +1282,6 @@ PROGRAM IXCHEL2D
            !
         end if
         !
-        !
-        ! if( mod(itera,1000)==0 )then
-           ! !CALL entropia_cvt(x,y,u,xu,v,yv,temp,entropia_calor,entropia_viscosa,entropia,&
-           !&entropia_int,temp_int,a_ent,lambda_ent)
-           !
-           !$acc update self(temp(1:mi+1,1:nj+1)) ! !async(stream2)
-           ! $acc parallel !async(stream2)
-           ! call nusselt_promedio_y(&
-           !      &xp,yp,deltaxp,deltayp,&
-           !      &temp,nusselt0,nusselt1,&
-           !      &placa_min,placa_max&
-           !      &)
-           ! $acc end parallel
-           ! $acc wait
-           !
-           ! temp_med = (temp((placa_min+placa_max)/2,nj/2+1)+&
-           !      &temp((placa_min+placa_max)/2+1,nj/2+1))/2._DBL
-           ! OPEN(unit = 5,file='nuss_sim_n'//trim(njc)//'m'//trim(mic)//'_R'&
-           !      &//trim(Rec)//'.dat',access = 'append')
-           ! WRITE(5,form26) tiempo_inicial+itera*dt,nusselt0,&
-           !      &-nusselt1,temp_med,temp_int,entropia_int
-           ! CLOSE(unit = 5)
-           !
-        ! end if
-        !
         ! ********************************************************
         !
         ! Se actualizan los  arreglos para paso de tiempo anterior
@@ -1342,14 +1317,17 @@ PROGRAM IXCHEL2D
      !*************       termina el paquete de iteraciones
      !*****************************************************
      !*****************************************************
+     !
      itera_total = itera_inicial+itera
      millar      = itera_total/(1000*paq_itera)
      centena     = (itera_total-millar*1000*paq_itera)/(100*paq_itera)
-     decena      = (itera_total-millar*1000*paq_itera-centena*100*paq_itera)/(10*paq_itera)
-     unidad      = (itera_total-millar*1000*paq_itera-centena*100*paq_itera-decena*10*paq_itera)&
-          &/(paq_itera)
-     decima      = (itera_total-millar*1000*paq_itera-centena*100*paq_itera-decena*10*paq_itera&
-          &-unidad*paq_itera)/(paq_itera/10)
+     decena      = (itera_total-millar*1000*paq_itera-centena*100*paq_itera)&
+          &/(10*paq_itera)
+     unidad      = (itera_total-millar*1000*paq_itera-centena*100*paq_itera-&
+          &decena*10*paq_itera)/(paq_itera)
+     decima      = (itera_total-millar*1000*paq_itera-centena*100*paq_itera-&
+          &decena*10*paq_itera-unidad*paq_itera)/(paq_itera/10)
+     !
      WRITE(dec,16)decima;16 format(I1)
      WRITE(un,16) unidad
      WRITE(de,16) decena
