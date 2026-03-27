@@ -1376,9 +1376,12 @@ PROGRAM IXCHEL2D
         vf(ii,nj+1) = v(ii,nj)
      END DO
      !************************************
-     ! WRITE(*,*) 'itera_total=',itera_total
-     ! WRITE(*,103) nusselt0,nusselt1
+     !
+     ! Mensaje de paquete de iteraciones
+     !
+     write(*,*)' '
      WRITE(*,104) itera_total
+     write(*,*)' '
      ! WRITE(*,105) MAXVAL(ABS(Restemp)),MAXVAL(ABS(Resv))
      ! WRITE(*,*)' '
      !********************************
