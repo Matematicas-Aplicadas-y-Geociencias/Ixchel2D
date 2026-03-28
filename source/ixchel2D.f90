@@ -1244,18 +1244,26 @@ PROGRAM IXCHEL2D
            !
            !$acc wait
            if ( maxbo<conv_paso .and. residuo<conv_resi)then
-              write(102,*) 'SIMPLE', iter_simple, maxbo, residuo
-              iter_simple = 0
-              exit
-           else if ( iter_simple > iter_simple_max ) then
-              iter_simple = 0
-              !write(*,*)"Advertencia SIMPLE: convergencia no alcanzada,", residuo,maxbo  
-              exit
-           else
+              !
               iter_simple = iter_simple + 1
               write(102,*) 'SIMPLE', iter_simple, maxbo, residuo
-              !write(*,*)'tiempo ',itera,res_fluido_u,MAXVAL(ABS(Resu)),MAXVAL(ABS(b_o)),&
-                   ! &MAXVAL(ABS(pres))
+              !
+              iter_simple = 0
+              exit
+              !
+           else if ( iter_simple > iter_simple_max ) then
+              !
+              iter_simple = iter_simple + 1
+              write(102,*) 'SIMPLE', iter_simple, maxbo, residuo
+              !
+              iter_simple = 0
+              exit
+              !
+           else
+              !
+              iter_simple = iter_simple + 1
+              write(102,*) 'SIMPLE', iter_simple, maxbo, residuo
+              !
            end if
            !
         end do ALGORITMO_SIMPLE  !final del algoritmo SIMPLE
