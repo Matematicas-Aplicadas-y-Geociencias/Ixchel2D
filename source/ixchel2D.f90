@@ -1426,7 +1426,7 @@ PROGRAM IXCHEL2D
 103 format(1X,'N_Izq=',D23.15,', N_Der=',D23.15)
 104 format(1X,"Ixchel2D: iter_total=", I7)
 105 format(1X,'Res_T=',D23.15,', Res_v=',D23.15)
-106 format(1X,"Ixchel2D: tiempo= ",E9.3,", maxbo= ",E9.3,", res_u= ",&
+106 format(1X,"Ixchel2D: tiempo= ",E10.4,", maxbo= ",E9.3,", res_u= ",&
          &E9.3 )
   !
 end program IXCHEL2D
