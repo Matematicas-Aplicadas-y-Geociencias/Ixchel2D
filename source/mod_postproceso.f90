@@ -56,7 +56,7 @@ contains
     !
     implicit none
     !
-    character(32),  intent(in)    :: file_name
+    character(36),  intent(in)    :: file_name
     !
     write(*,*)"Ixchel2D: crea el archivo de promedios en perfiles"
     write(*,*)"   Archivo: ", file_name

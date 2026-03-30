@@ -348,8 +348,8 @@ PROGRAM IXCHEL2D
   !
   call lectura_archivo_prom()
   !
-  file_name = 'perfil_n'//trim(njc)//'m'//trim(mic)//'_R'&
-       &//trim(Rec)//'.dat'
+  file_name = 'n'//trim(njc)//'m'//trim(mic)//'R'//trim(Rec)//&
+       &'/perfil_prome.out'
   !
   ! Se abre el archivo para almacenar los promedios en los
   ! perfiles
