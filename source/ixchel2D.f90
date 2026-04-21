@@ -541,13 +541,23 @@ PROGRAM IXCHEL2D
               ! en la GPU
               !
               ! lado a
-              !
               !$acc parallel
-              call impone_cond_frontera(cond_front_ua,&
-                   & AI,AC,AD,Rx, &
-                   & mi+1,nj+1,   &
-                   & mi,nj+1,     &
-                   & au )
+              !
+              bucle_direccionxu: do jj = 2, nj
+              !
+              !Condiciones de frontera
+                  AC(1,jj)     = 1._DBL
+                  AD(1,jj)     = 0.0_DBL
+                  Rx(1,jj)     = 1.0_DBL*(-yp(jj)*yp(jj) + 8*yp(jj))
+                  au(1,jj)     = 1.0e40_DBL
+              !
+              end do bucle_direccionxu
+              !
+              ! call impone_cond_frontera(cond_front_ua,&
+              !      & AI,AC,AD,Rx, &
+              !      & mi+1,nj+1,   &
+              !      & mi,nj+1,     &
+              !      & au )
               !
               !-------------------------------------
               !
