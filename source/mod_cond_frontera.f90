@@ -33,6 +33,7 @@ MODULE cond_frontera
      integer                         :: ndivis      ! n'umero de divisiones
      character(len=4), dimension(15) :: tipo_condi  ! tipo de condici\'on de frontera
      real(kind=DBL), dimension(15)   :: valor_cond  ! valor de la condici\'on de frontera
+     character(len=4), dimension(15) :: func_condi  ! Funci'on espacio-tiempo de la c.f. 
      integer, dimension(14)          :: indice_div  ! indices iniciales de las divisiones
      !
   end type tipo_cond_front
@@ -55,6 +56,7 @@ contains
     cond_front_uu % ndivis     =  0
     cond_front_uu % tipo_condi = 'desc'
     cond_front_uu % valor_cond =  0.0_DBL
+    cond_front_uu % func_condi = 'desc'
     cond_front_uu % indice_div = -14
     !
   end subroutine inicializa_cond_front
@@ -92,6 +94,7 @@ contains
     character(len=1) :: lado
     character(len=4) :: variable
     character(len=4) :: tipo_condicion
+    character(len=4) :: funcion
     !
     real(kind=DBL)   :: x0, x1, valor
     !
@@ -126,7 +129,7 @@ contains
           !
           divisiones_xa: do jj = 1, divisiones
              !
-             read(111,*) x0, x1, tipo_condicion, valor
+             read(111,*) x0, x1, tipo_condicion, valor, funcion
              !
              write(*,form37) "    Tipo ", tipo_condicion, &
                   &" entre ", x0, " y ", x1," en lado ", lado
@@ -135,6 +138,7 @@ contains
              cond_front_uua % ndivis         = divisiones
              cond_front_uua % tipo_condi(jj) = tipo_condicion
              cond_front_uua % valor_cond(jj) = valor
+             cond_front_uua % func_condi(jj) = funcion
              !
              indices_conda: do kk = 1, nn
                 !
@@ -146,7 +150,7 @@ contains
              !
           end do divisiones_xa
           !
-          cond_front_uua % indice_div(divisiones+1) = nn-1 ! indice final para bucles de frontera
+          cond_front_uua % indice_div(divisiones+1) = nn-1 ! indice final bucles frontera
           !
        case( 'b' )
           !
@@ -154,7 +158,7 @@ contains
           !
           divisiones_yb: do jj = 1, divisiones
              !
-             read(111,*) x0, x1, tipo_condicion, valor
+             read(111,*) x0, x1, tipo_condicion, valor, funcion
              !
              write(*,form37) "    Tipo ", tipo_condicion, &
                   &" entre ", x0, " y ", x1," en lado ", lado
@@ -163,6 +167,7 @@ contains
              cond_front_uub % ndivis         = divisiones
              cond_front_uub % tipo_condi(jj) = tipo_condicion
              cond_front_uub % valor_cond(jj) = valor
+             cond_front_uub % func_condi(jj) = funcion
              !
              indices_condb: do kk = 1, mm
                 !
@@ -174,7 +179,7 @@ contains
              !
           end do divisiones_yb
           !
-          cond_front_uub % indice_div(divisiones+1) = mm-1 ! indice final para bucles de frontera
+          cond_front_uub % indice_div(divisiones+1) = mm-1 ! indice final bucles frontera
           !
        case( 'c' )
           !
@@ -182,7 +187,7 @@ contains
           !
           divisiones_xc: do jj = 1, divisiones
              !
-             read(111,*) x0, x1, tipo_condicion, valor
+             read(111,*) x0, x1, tipo_condicion, valor, funcion
              !
              write(*,form37) "    Tipo ", tipo_condicion, &
                   &" entre ", x0, " y ", x1," en lado ", lado
@@ -191,6 +196,7 @@ contains
              cond_front_uuc % ndivis         = divisiones
              cond_front_uuc % tipo_condi(jj) = tipo_condicion
              cond_front_uuc % valor_cond(jj) = valor
+             cond_front_uuc % func_condi(jj) = funcion
              !
              indices_condc: do kk = 1, nn
                 !
@@ -202,7 +208,7 @@ contains
              !
           end do divisiones_xc
           !
-          cond_front_uuc % indice_div(divisiones+1) = nn-1 ! indice final para bucles de frontera
+          cond_front_uuc % indice_div(divisiones+1) = nn-1 ! indice final bucles frontera
           !
        case( 'd' )
           !
@@ -211,7 +217,7 @@ contains
           !
           divisiones_yd: do jj = 1, divisiones
              !
-             read(111,*) x0, x1, tipo_condicion, valor
+             read(111,*) x0, x1, tipo_condicion, valor, funcion
              !
              write(*,form37) "    Tipo ", tipo_condicion, &
                   &" entre ", x0, " y ", x1," en lado ", lado
@@ -220,6 +226,7 @@ contains
              cond_front_uud % ndivis         = divisiones
              cond_front_uud % tipo_condi(jj) = tipo_condicion
              cond_front_uud % valor_cond(jj) = valor
+             cond_front_uud % func_condi(jj) = funcion
              !
              indices_condd: do kk = 1, mm
                 !
@@ -231,7 +238,7 @@ contains
              !
           end do divisiones_yd
           !
-          cond_front_uud % indice_div(divisiones+1) = mm-1 ! indice final para bucles de frontera
+          cond_front_uud % indice_div(divisiones+1) = mm-1 ! indice final bucles frontera
           !
        end select sel_lado
           !
@@ -255,6 +262,7 @@ contains
        & AI_o,AC_o,AD_o,Rx_o, &
        & mm,nn,               &
        & kk,ll,               &
+       & tiem,                &
        & au_o )
     !
     !$acc routine seq
@@ -264,6 +272,8 @@ contains
     class( tipo_cond_front ), intent(in)          :: cond_front_uu
     !
     real(kind=DBL), dimension(mm,nn), intent(out) :: AI_o, AC_o, AD_o, Rx_o
+    real(kind=DBL), intent(in)                    :: tiem
+    !
     real(kind=DBL), dimension(kk,ll), intent(out), optional :: au_o
     !
     integer, intent(in)                           :: mm, nn, kk, ll
@@ -272,6 +282,8 @@ contains
     !
     !-------------------------------
     lado: select case( cond_front_uu % lado_front )
+       !
+       !-------------------------------
        !
        ! lado a
        !
@@ -286,7 +298,8 @@ contains
                 AI_o(1,jj) = 0.0_DBL
                 AC_o(1,jj) = 1.0_DBL
                 AD_o(1,jj) = 0.0_DBL
-                Rx_o(1,jj) = cond_front_uu % valor_cond(ldiv)
+                Rx_o(1,jj) = cond_front_uu % valor_cond(ldiv) * &
+                     dirichlet_ini( tiem, cond_front_uu % func_condi(ldiv) )
                 if ( present(au_o) ) au_o(1,jj) = 1.e40_DBL
                 ! print*, "DEBUG: Dirichlet en a"
              end do
@@ -308,6 +321,8 @@ contains
           !
        end do bucle_segmento_au
        !
+       !-------------------------------
+       !
        ! lado b
        !
     case( 'b' )
@@ -321,7 +336,8 @@ contains
                 AI_o(1,jj) = 0.0_DBL
                 AC_o(1,jj) = 1.0_DBL
                 AD_o(1,jj) = 0.0_DBL
-                Rx_o(1,jj) = cond_front_uu % valor_cond(ldiv)
+                Rx_o(1,jj) = cond_front_uu % valor_cond(ldiv) * &
+                     dirichlet_ini( tiem, cond_front_uu % func_condi(ldiv) )
                 if ( present(au_o) ) au_o(jj,1) = 1.e40_DBL
                 ! print*, "DEBUG: Dirichlet en a"
              end do
@@ -334,7 +350,8 @@ contains
                 AI_o(1,jj) = 0.0_DBL
                 AC_o(1,jj) =-1.0_DBL
                 AD_o(1,jj) = 1.0_DBL
-                Rx_o(1,jj) = cond_front_uu % valor_cond(ldiv)
+                Rx_o(1,jj) = cond_front_uu % valor_cond(ldiv) * &
+                     dirichlet_ini( tiem, cond_front_uu % func_condi(ldiv) )
                 if ( present(au_o) ) au_o(jj,1) = 1.e40_DBL
                 ! print*, "DEBUG: neumann en a"
              end do
@@ -358,7 +375,8 @@ contains
                 AI_o(kk,jj) = 0.0_DBL
                 AC_o(kk,jj) = 1.0_DBL
                 AD_o(kk,jj) = 0.0_DBL
-                Rx_o(kk,jj) = cond_front_uu % valor_cond(ldiv)
+                Rx_o(kk,jj) = cond_front_uu % valor_cond(ldiv) * &
+                     dirichlet_ini( tiem, cond_front_uu % func_condi(ldiv) )
                 if ( present(au_o) ) au_o(kk,jj) = 1.e40_DBL
                 ! print*, "DEBUG: Dirichlet en a"
              end do
@@ -394,7 +412,8 @@ contains
                 AI_o(ll,jj) = 0.0_DBL
                 AC_o(ll,jj) = 1.0_DBL
                 AD_o(ll,jj) = 0.0_DBL
-                Rx_o(ll,jj) = cond_front_uu % valor_cond(ldiv)
+                Rx_o(ll,jj) = cond_front_uu % valor_cond(ldiv) * &
+                     dirichlet_ini( tiem, cond_front_uu % func_condi(ldiv) )
                 if ( present(au_o) ) au_o(jj,ll) = 1.e40_DBL
                 ! print*, "DEBUG: Dirichlet en a"
              end do
@@ -418,5 +437,62 @@ contains
     end select lado
     !
   end subroutine impone_cond_frontera
-  !  
+  !
+  !*************************************************************
+  !
+  ! funciones para definir condiciones dependientes del tiempo
+  !
+  !*************************************************************
+  !
+  ! funci'on del tiempo para arrancar simulaciones 
+  !
+  real(kind=DBL) function dirichlet_ini(xx,nombre)
+    !
+    real(kind=DBL), intent(in)   :: xx
+    !
+    character(len=4), intent(in) :: nombre
+    !
+    sel_funcion: select case( nombre )
+       !
+    case( 'cons' )
+       !
+       dirichlet_ini = 1.0_DBL
+       !
+    case( 'tanh' )
+       !
+       dirichlet_ini = dtanh(2.0_DBL*xx/3.0_DBL)
+       !
+    case( 'ramp' )
+       !
+       !       print*,"DEBUG: Rampa ", xx
+       if( xx .le. 1.0_DBL )then
+          !
+          dirichlet_ini = xx
+          !
+       else
+          !
+          dirichlet_ini = 1.0_DBL
+          !
+       end if
+       !
+    end select sel_funcion
+    !
+  end function dirichlet_ini
+  !
+  ! Recta de pendiente mm y ordenada al origen bb
+  !
+  real(kind=DBL) function recta_mxb2(xx)
+    !
+    ! import DBL
+    implicit none
+    !
+    real(kind=DBL), intent(in) :: xx
+    real(kind=DBL)             :: mm, bb
+    !
+    mm =-1.0_DBL/2.0_DBL
+    bb =-( 0.3_DBL - mm * 6.0_DBL ) / mm
+    recta_mxb2 = xx/mm + bb
+    !
+  end function recta_mxb2
+  !
 end MODULE cond_frontera

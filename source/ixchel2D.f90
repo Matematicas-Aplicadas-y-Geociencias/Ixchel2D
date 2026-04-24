@@ -477,6 +477,7 @@ PROGRAM IXCHEL2D
                    & BS,BC,BN,Ry, &
                    & nj+1,mi+1,   &
                    & mi,nj+1,     &
+                   & tiempo,      &
                    & au )
               !-----------------------------------------------
               !
@@ -486,6 +487,7 @@ PROGRAM IXCHEL2D
                    & BS,BC,BN,Ry, &
                    & nj+1,mi+1,   &
                    & mi,nj+1,     &
+                   & tiempo,      &
                    & au )
               !$acc end parallel
               !
@@ -547,6 +549,7 @@ PROGRAM IXCHEL2D
                    & AI,AC,AD,Rx, &
                    & mi+1,nj+1,   &
                    & mi,nj+1,     &
+                   & tiempo,      &
                    & au )
               !
               !-------------------------------------
@@ -557,6 +560,7 @@ PROGRAM IXCHEL2D
                    & AI,AC,AD,Rx, &
                    & mi+1,nj+1,   &
                    & mi,nj+1,     &
+                   & tiempo,      &
                    & au )
               !$acc end parallel
               !
@@ -623,6 +627,7 @@ PROGRAM IXCHEL2D
                    & BS,BC,BN,Ry, &
                    & nj+1,mi+1,   &
                    & mi+1,nj,     &
+                   & tiempo,      &
                    & av )
               
               ! !$acc parallel loop vector !async(stream1)
@@ -644,6 +649,7 @@ PROGRAM IXCHEL2D
                    & BS,BC,BN,Ry, &
                    & nj+1,mi+1,   &
                    & mi+1,nj,     &
+                   & tiempo,      &
                    & av )         
               !$acc end parallel
               !
@@ -700,6 +706,7 @@ PROGRAM IXCHEL2D
                    & AI,AC,AD,Rx, &
                    & mi+1,nj+1,   &
                    & mi+1,nj,     &
+                   & tiempo,      &
                    & av )
        
               !-----------------------------------------------
@@ -710,6 +717,7 @@ PROGRAM IXCHEL2D
                    & AI,AC,AD,Rx, &
                    & mi+1,nj+1,   &
                    & mi+1,nj,     &
+                   & tiempo,      &
                    & av )            
               !$acc end parallel
               !
@@ -1055,7 +1063,8 @@ PROGRAM IXCHEL2D
               call impone_cond_frontera(cond_front_tb,&
                    & BS,BC,BN,Ry, &
                    & nj+1,mi+1,   &
-                   & mi+1,nj+1) 
+                   & mi+1,nj+1,   &
+                   & tiempo) 
               !-----------------------------------------------
               !
               ! lado d
@@ -1063,7 +1072,8 @@ PROGRAM IXCHEL2D
               call impone_cond_frontera(cond_front_td,&
                    & BS,BC,BN,Ry, &
                    & nj+1,mi+1,   &
-                   & mi+1,nj+1)
+                   & mi+1,nj+1,   &
+                   & tiempo)
               !$acc end parallel
               !---------------------------------------------
               !
@@ -1127,7 +1137,8 @@ PROGRAM IXCHEL2D
               call impone_cond_frontera(cond_front_ta,&
                    & AI,AC,AD,Rx, &
                    & mi+1,nj+1,   &
-                   & mi+1,nj+1)
+                   & mi+1,nj+1,   &
+                   & tiempo)
               !-----------------------------------------------
               !
               ! lado c
@@ -1135,7 +1146,8 @@ PROGRAM IXCHEL2D
               call impone_cond_frontera(cond_front_tc,&
                    & AI,AC,AD,Rx, &
                    & mi+1,nj+1,   &
-                   & mi+1,nj+1)
+                   & mi+1,nj+1,   &
+                   & tiempo)
               !$acc end parallel
               !
               !---------------------------------------------
