@@ -8,6 +8,7 @@
 MODULE cond_frontera
   !
   use malla, only : mi, nj, DBL
+  use malla, only : xu, yv, xp, yp
   !
   implicit none
   !
@@ -299,7 +300,7 @@ contains
                 AC_o(1,jj) = 1.0_DBL
                 AD_o(1,jj) = 0.0_DBL
                 Rx_o(1,jj) = cond_front_uu % valor_cond(ldiv) * &
-                     dirichlet_ini( tiem, cond_front_uu % func_condi(ldiv) )
+                     dirichlet_ini( tiem, jj, cond_front_uu % func_condi(ldiv) )
                 if ( present(au_o) ) au_o(1,jj) = 1.e40_DBL
                 ! print*, "DEBUG: Dirichlet en a"
              end do
@@ -337,7 +338,7 @@ contains
                 AC_o(1,jj) = 1.0_DBL
                 AD_o(1,jj) = 0.0_DBL
                 Rx_o(1,jj) = cond_front_uu % valor_cond(ldiv) * &
-                     dirichlet_ini( tiem, cond_front_uu % func_condi(ldiv) )
+                     dirichlet_ini( tiem, jj, cond_front_uu % func_condi(ldiv) )
                 if ( present(au_o) ) au_o(jj,1) = 1.e40_DBL
                 ! print*, "DEBUG: Dirichlet en a"
              end do
@@ -351,7 +352,7 @@ contains
                 AC_o(1,jj) =-1.0_DBL
                 AD_o(1,jj) = 1.0_DBL
                 Rx_o(1,jj) = cond_front_uu % valor_cond(ldiv) * &
-                     dirichlet_ini( tiem, cond_front_uu % func_condi(ldiv) )
+                     dirichlet_ini( tiem, jj, cond_front_uu % func_condi(ldiv) )
                 if ( present(au_o) ) au_o(jj,1) = 1.e40_DBL
                 ! print*, "DEBUG: neumann en a"
              end do
@@ -376,7 +377,7 @@ contains
                 AC_o(kk,jj) = 1.0_DBL
                 AD_o(kk,jj) = 0.0_DBL
                 Rx_o(kk,jj) = cond_front_uu % valor_cond(ldiv) * &
-                     dirichlet_ini( tiem, cond_front_uu % func_condi(ldiv) )
+                     dirichlet_ini( tiem, jj, cond_front_uu % func_condi(ldiv) )
                 if ( present(au_o) ) au_o(kk,jj) = 1.e40_DBL
                 ! print*, "DEBUG: Dirichlet en a"
              end do
@@ -413,7 +414,7 @@ contains
                 AC_o(ll,jj) = 1.0_DBL
                 AD_o(ll,jj) = 0.0_DBL
                 Rx_o(ll,jj) = cond_front_uu % valor_cond(ldiv) * &
-                     dirichlet_ini( tiem, cond_front_uu % func_condi(ldiv) )
+                     dirichlet_ini( tiem, jj, cond_front_uu % func_condi(ldiv) )
                 if ( present(au_o) ) au_o(jj,ll) = 1.e40_DBL
                 ! print*, "DEBUG: Dirichlet en a"
              end do
@@ -446,9 +447,11 @@ contains
   !
   ! funci'on del tiempo para arrancar simulaciones 
   !
-  real(kind=DBL) function dirichlet_ini(xx,nombre)
+  real(kind=DBL) function dirichlet_ini(xx,jj,nombre)
     !
     real(kind=DBL), intent(in)   :: xx
+    !
+    integer, intent(in)          :: jj
     !
     character(len=4), intent(in) :: nombre
     !
@@ -474,6 +477,11 @@ contains
           dirichlet_ini = 1.0_DBL
           !
        end if
+       !
+    case( 'jccg' )
+       !
+       dirichlet_ini = (yp(nj+1)-yp(jj))*yp(jj)*dtanh(2.0_DBL*xx/3.0_DBL) / &
+            (2._DBL*yp(nj+1))
        !
     end select sel_funcion
     !
