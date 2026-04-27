@@ -128,6 +128,12 @@ contains
        fuente_con_t(ii,jj) = real(fue_con,DBL)
        fuente_lin_t(ii,jj) = real(fue_lin,DBL)
        !
+       fuente_con_u(ii-1,jj) = real(fue_con,DBL)
+       fuente_lin_u(ii-1,jj) = real(fue_lin,DBL)
+       !
+       fuente_con_v(ii,jj-1) = real(fue_con,DBL)
+       fuente_lin_v(ii,jj-1) = real(fue_lin,DBL)
+       !
     end do
     !
     close(81)
