@@ -63,18 +63,23 @@ contains
     integer :: num_archivos   ! n'umero de archivos para definir la front. inmersa
     !
     character(len=64) :: archivo ! nombre del archivo a leer
-    !r
+    !
+    real(kind=DBL) :: gam_mom, gam_ene, fue_con_u, fue_lin_u
+    real(kind=DBL) :: fue_con_v, fue_lin_v, fue_con_t, fue_lin_t
+    !
     integer :: kk
     !
     open(82, file='front_inmersa.dat')
     !
-    read(82,*) num_archivos
+    read(82,*) num_archivos, gam_mom, gam_ene, fue_con_u, fue_lin_u, &
+         & fue_con_v, fue_lin_v, fue_con_t, fue_lin_t
     !
     do kk=1, num_archivos
        !
        read(82,*) archivo
        !
-       call define_cuerpo(archivo)
+       call define_cuerpo(archivo, gam_mom, gam_ene, fue_con_u, fue_lin_u, &
+         & fue_con_v, fue_lin_v, fue_con_t, fue_lin_t)
        !
     end do
     !
@@ -92,7 +97,8 @@ contains
   !
   !*******************************************************************
   !
-  subroutine define_cuerpo(archivoo)
+  subroutine define_cuerpo(archivoo, gam_mom, gam_ene, fue_con_u, fue_lin_u, &
+         & fue_con_v, fue_lin_v, fue_con_t, fue_lin_t)
     !
     implicit none
     !
@@ -103,7 +109,8 @@ contains
     !
     ! Variables auxiliares para escribir las propiedades
     !
-    real(kind=DBL) :: gam_mom, gam_ene, fue_con, fue_lin
+    real(kind=DBL) :: gam_mom, gam_ene, fue_con_u, fue_lin_u
+    real(kind=DBL) :: fue_con_v, fue_lin_v, fue_con_t, fue_lin_t
     !
     integer   :: ii,jj
     !
@@ -121,20 +128,20 @@ contains
     !
     do nn = 1, num_puntos
        !
-       read(81,*) ii, jj, gam_mom, gam_ene, fue_con, fue_lin
+       read(81,*) ii, jj
        gamma_momen(ii,jj)  = real(gam_mom,DBL)
        gamma_energ(ii,jj)  = real(gam_ene,DBL)
        !
-       fuente_con_t(ii,jj) = real(fue_con,DBL)
-       fuente_lin_t(ii,jj) = real(fue_lin,DBL)
+       fuente_con_t(ii,jj) = fue_con_t
+       fuente_lin_t(ii,jj) = fue_lin_t
        !
-       fuente_con_u(ii,jj) = real(fue_con,DBL)
-       fuente_lin_u(ii,jj) = real(fue_lin,DBL)
-       au(ii,jj)           = real(fue_lin,DBL) 
+       fuente_con_u(ii,jj) = fue_con_u
+       fuente_lin_u(ii,jj) = fue_lin_u
+       au(ii,jj)           = fue_lin_u 
        !
-       fuente_con_v(ii,jj) = real(fue_con,DBL)
-       fuente_lin_v(ii,jj) = real(fue_lin,DBL)
-       av(ii,jj)           = real(fue_lin,DBL)
+       fuente_con_v(ii,jj) = fue_con_u
+       fuente_lin_v(ii,jj) = fue_lin_u
+       av(ii,jj)           = fue_lin_u
        !
     end do
     !
