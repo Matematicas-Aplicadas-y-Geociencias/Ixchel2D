@@ -340,7 +340,7 @@ PROGRAM IXCHEL2D
   !
   if( front_inmersa ) call lectura_cuerpo()
   !
-  ! call definir_cuerpo(gamma_momen, gamma_energ, 'horno')
+  ! if( front_inmersa ) call definir_cuerpo(gamma_momen, gamma_energ, 'chime')
   !
   !--------------------------------------------------
   !

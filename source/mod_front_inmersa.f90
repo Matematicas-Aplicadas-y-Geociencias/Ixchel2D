@@ -122,8 +122,8 @@ contains
     do nn = 1, num_puntos
        !
        read(81,*) ii, jj, gam_mom, gam_ene, fue_con, fue_lin
-       gamma_momen(ii,jj) = real(gam_mom,DBL)
-       gamma_energ(ii,jj) = real(gam_ene,DBL)
+       gamma_momen(ii,jj)  = real(gam_mom,DBL)
+       gamma_energ(ii,jj)  = real(gam_ene,DBL)
        !
        fuente_con_t(ii,jj) = real(fue_con,DBL)
        fuente_lin_t(ii,jj) = real(fue_lin,DBL)
@@ -454,9 +454,9 @@ contains
        !
        ! varillas inmersas para chimenea solar
        !
-       yu = 0.5_DBL
-       xv = 8.5_DBL
-       hh = 0.3_DBL
+       yu = 4.0_DBL
+       xv = 10.5_DBL
+       hh = 1.0_DBL
        !
        do jj = 1, nj+1
           if( yu-hh/2.0_DBL <= yp(jj) .and. yp(jj) <= yu+hh/2.0_DBL )then
