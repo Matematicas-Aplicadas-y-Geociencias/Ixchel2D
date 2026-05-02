@@ -71,12 +71,12 @@ contains
     !
     open(82, file='front_inmersa.dat')
     !
-    read(82,*) num_archivos, gam_mom, gam_ene, fue_con_u, fue_lin_u, &
-         & fue_con_v, fue_lin_v, fue_con_t, fue_lin_t
+    read(82,*) num_archivos
     !
     do kk=1, num_archivos
        !
-       read(82,*) archivo
+       read(82,*) archivo, gam_mom, gam_ene, fue_con_u, fue_lin_u, &
+         & fue_con_v, fue_lin_v, fue_con_t, fue_lin_t
        !
        call define_cuerpo(archivo, gam_mom, gam_ene, fue_con_u, fue_lin_u, &
          & fue_con_v, fue_lin_v, fue_con_t, fue_lin_t)
