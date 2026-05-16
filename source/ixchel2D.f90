@@ -1292,7 +1292,7 @@ PROGRAM IXCHEL2D
         ! Se calculan promedios en perfiles definidos.
         ! Se hacen tres por cada unidad de tiempo 
         !
-        if( mod(itera, ceiling( 1._DBL/(3._DBL*dt) ) ) == 0 ) then
+        if( mod(itera, ceiling( 1._DBL/(7._DBL*dt) ) ) == 0 ) then
            !
            ! Mensaje de avance de simulaci'on
            !
