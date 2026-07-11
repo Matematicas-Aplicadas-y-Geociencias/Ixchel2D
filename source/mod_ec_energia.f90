@@ -20,9 +20,9 @@ module ec_energia
   ! Variables para la ecuaci\'on de la energ\'ia
   ! temperatura, coeficiente de difusi\'on y criterios de convergencia
   ! 
-  REAL(kind=DBL), DIMENSION(mi+1,nj+1) :: temp, temp_ant, dtemp, Restemp
-  REAL(kind=DBL), DIMENSION(mi+1,nj+1) :: ftemp, gamma_energ
-  REAL(kind=DBL)  :: conv_t,rel_ener
+  real(kind=DBL), DIMENSION(mi+1,nj+1) :: temp, temp_ant, dtemp, Restemp
+  real(kind=DBL), DIMENSION(mi+1,nj+1) :: ftemp, gamma_energ
+  real(kind=DBL)  :: conv_t,rel_ener
   !
   ! Variables para los t\'erminos fuente de la ec de energ\'ia.
   ! El t\'ermino lineal fuente_lin debe ser negativo para favorecer
@@ -33,13 +33,171 @@ module ec_energia
   !
   type( tipo_cond_front ) :: cond_front_ta, cond_front_tb, cond_front_tc, cond_front_td
   !
+  ! Arreglos para valores de condicion de frontera variable
+  !
+  real(kind=DBL), dimension(nj+1) :: val_condf_ta, val_condf_tc
+  real(kind=DBL), dimension(mi+1) :: val_condf_tb, val_condf_td
+  !
 contains
   !
   !*******************************************************************
   !
-  ! condicion_inicial_uv
+  ! actualiza_cond_frontera_tempe_bd
   !
-  ! Subrutina que inicializa los arreglos para u, v y p de acuerdo a
+  ! Subrutina que actualiza los arreglos para condiciones de frontera
+  ! variables para la ec. de la energ'ia en los lados b y d
+  !
+  !*******************************************************************  
+  subroutine actualiza_cond_frontera_tempe_bd(tiempo, cond_front_tx, val_cond_tx)
+    !
+    implicit none
+    ! $acc routine vector
+    !
+    real(kind=DBL), intent(in) :: tiempo ! valor de tiempo para dependencia temporal
+    !
+    type( tipo_cond_front  ),        intent(inout) :: cond_front_tx ! estructura de c.f.
+    !
+    real(kind=DBL), dimension(mi+1), intent(inout) :: val_cond_tx   ! valor a modificar
+    !
+    integer :: ind_j          ! entero para distinguir el lado b o el d
+    integer :: kk, idiv, ndiv ! enteros para recorrer bucles de nodos y divisiones
+    !
+    ! Se selecciona el lado b o el d
+    !
+    if( cond_front_tx % lado_front == 'b' )then
+       !
+       ind_j = 1
+       !
+    else
+       !
+       ind_j = nj+1
+       !
+    end if
+    !
+    ! Se realiza un bucle por el n'umero de divisiones del lado a actualizar
+    !
+    do idiv = 1, cond_front_tx % ndivis
+       !
+       sel_funcion: select case ( cond_front_tx % func_condi( idiv ) )
+          !
+       case( 'cons' )
+          !
+          return
+          !
+       case( 'perd' )
+          !
+          ! P'erdida de energ'ia por transferencia de calor en la pared
+          !
+          buclenodo_cfty_perd: do kk = cond_front_tx % indice_div(idiv), &
+               &cond_front_tx % indice_div(idiv+1)
+             !
+             val_cond_tx(kk) = temp(kk,ind_j) !* cond_front_tx % valor_cond(kk)
+             !
+          end do buclenodo_cfty_perd
+          !
+       case ( 'tanh' )
+          !
+          ! Multiplica la condici'on de frontera por la tanh del tiempo
+          !
+          buclenodo_cfty_tanh: do kk = cond_front_tx % indice_div(idiv), &
+               &cond_front_tx % indice_div(idiv+1)
+             !
+             val_cond_tx(kk) = dtanh( 2.0_DBL * tiempo / 3.0_DBL )
+             !
+          end do buclenodo_cfty_tanh
+          !
+       case default
+          !
+          return
+          !
+       end select sel_funcion
+       !
+    end do
+    !
+  end subroutine actualiza_cond_frontera_tempe_bd
+  !
+  !
+  !*******************************************************************
+  !
+  ! actualiza_cond_frontera_tempe_ac
+  !
+  ! Subrutina que actualiza los arreglos para condiciones de frontera
+  ! variables para la ec. de la energ'ia en los lados a y c
+  !
+  !*******************************************************************  
+  subroutine actualiza_cond_frontera_tempe_ac(tiempo, cond_front_tx, val_cond_tx)
+    !
+    implicit none
+    ! $acc routine vector
+    !
+    real(kind=DBL), intent(in) :: tiempo ! valor de tiempo para dependencia temporal
+    !
+    type( tipo_cond_front  ),        intent(inout) :: cond_front_tx ! estructura de c.f.
+    !
+    real(kind=DBL), dimension(nj+1), intent(inout) :: val_cond_tx   ! valor a modificar
+    !
+    integer :: ind_i          ! entero para distinguir el lado a o el c
+    integer :: kk, idiv, ndiv ! enteros para recorrer bucles de nodos y divisiones
+    !
+    ! Se selecciona el lado a o el c
+    !
+    if( cond_front_tx % lado_front == 'a' )then
+       !
+       ind_i = 1
+       !
+    else
+       !
+       ind_i = mi+1
+       !
+    end if
+    !
+    ! Se realiza un bucle por el n'umero de divisiones del lado a actualizar
+    !
+    do idiv = 1, cond_front_tx % ndivis
+       !
+       sel_funcion: select case ( cond_front_tx % func_condi( idiv ) )
+          !
+       case( 'cons' )
+          !
+          return
+          !
+       case( 'perd' )
+          !
+          ! P'erdida de energ'ia por transferencia de calor en la pared
+          !
+          buclenodo_cftx_perd: do kk = cond_front_tx % indice_div(idiv), &
+               &cond_front_tx % indice_div(idiv+1)
+             !
+             val_cond_tx(kk) = temp(ind_i,kk) !* cond_front_tx % valor_cond(kk)
+             !
+          end do buclenodo_cftx_perd
+          !
+       case ( 'tanh' )
+          !
+          ! Multiplica la condici'on de frontera por la tanh del tiempo
+          !
+          buclenodo_cftx_tanh: do kk = cond_front_tx % indice_div(idiv), &
+               &cond_front_tx % indice_div(idiv+1)
+             !
+             val_cond_tx(kk) = dtanh( 2.0_DBL * tiempo / 3.0_DBL )
+             !
+          end do buclenodo_cftx_tanh
+          !
+       case default
+          !
+          return
+          !
+       end select sel_funcion
+       !
+    end do
+    !
+  end subroutine actualiza_cond_frontera_tempe_ac
+  !
+  !*******************************************************************
+  !
+  ! condicion_inicial_tempe
+  !
+  ! Subrutina que inicializa los arreglos para tempe de acuerdo a
   ! las conndiciones iniciales
   !
   !*******************************************************************  

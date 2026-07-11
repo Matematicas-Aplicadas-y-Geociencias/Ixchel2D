@@ -27,15 +27,15 @@ MODULE cond_frontera
      !
      ! Estructura de datos para determinar condiciones de frontera mediante archivos
      ! Se hace una estructura r\'igida capaz de manejar 15 divisiones por lado. Si se
-     ! requieren m\'as es posible aumentar las dimensiones de los arreglos o crear
+     ! requieren m\'as, es posible aumentar las dimensiones de los arreglos o crear
      ! un puntero asignable (allocatable)
      ! 
-     character(len=1)                :: lado_front  ! Se usan 4 lados en 2D: a,b,c,d
-     integer                         :: ndivis      ! n'umero de divisiones
-     character(len=4), dimension(15) :: tipo_condi  ! tipo de condici\'on de frontera
-     real(kind=DBL), dimension(15)   :: valor_cond  ! valor de la condici\'on de frontera
-     character(len=4), dimension(15) :: func_condi  ! Funci'on espacio-tiempo de la c.f. 
-     integer, dimension(14)          :: indice_div  ! indices iniciales de las divisiones
+     character(len=1)                 :: lado_front ! Se usan 4 lados en 2D: a,b,c,d
+     integer                          :: ndivis     ! n'umero de divisiones
+     character(len=4), dimension(15)  :: tipo_condi ! tipo de condici\'on de frontera
+     real(kind=DBL), dimension(15)    :: valor_cond ! valor de la condici\'on de frontera
+     character(len=4), dimension(15)  :: func_condi ! Funci'on espacio-tiempo de la c.f. 
+     integer, dimension(14)           :: indice_div ! indices iniciales de las divisiones
      !
   end type tipo_cond_front
   !
@@ -438,6 +438,36 @@ contains
     end select lado
     !
   end subroutine impone_cond_frontera
+    !
+  !*************************************************************
+  !
+  ! funciones para definir condiciones dependientes del tiempo
+  !
+  !*************************************************************
+  !
+  ! funci'on del tiempo para arrancar simulaciones 
+  !
+  real(kind=DBL) function neumann_ini(xx,jj,nombre)
+    !
+    real(kind=DBL), intent(in)   :: xx
+    !
+    integer, intent(in)          :: jj
+    !
+    character(len=4), intent(in) :: nombre
+    !
+    sel_funcion_neumann: select case( nombre )
+       !
+    case( 'cons' )
+       !
+       neumann_ini = 1.0_DBL
+       !
+    case( 'perdi' )
+       !
+       neumann_ini = 0.0_DBL
+       !
+    end select sel_funcion_neumann
+    !
+  end function neumann_ini
   !
   !*************************************************************
   !

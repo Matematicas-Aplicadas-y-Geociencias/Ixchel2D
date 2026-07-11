@@ -50,6 +50,292 @@ contains
   !
   !*******************************************************************
   !
+  ! actualiza_cond_frontera_velv_bd
+  !
+  ! Subrutina que actualiza los arreglos para condiciones de frontera
+  ! variables para la ec. de momento en u para los lados b y d
+  !
+  !*******************************************************************  
+  subroutine actualiza_cond_frontera_velv_bd(tiempo, cond_front_v, val_cond_v)
+    !
+    implicit none
+    ! $acc routine vector
+    !
+    real(kind=DBL), intent(in) :: tiempo ! valor de tiempo para dependencia temporal
+    !
+    type( tipo_cond_front  ),        intent(inout) :: cond_front_v ! estructura de c.f.
+    !
+    real(kind=DBL), dimension(mi+1), intent(inout) :: val_cond_v   ! valor a modificar
+    !
+    real(kind=DBL) :: pendiente ! Variable para rampa
+    !
+    integer :: ind_j          ! entero para distinguir el lado b o el d
+    integer :: kk, idiv, ndiv ! enteros para recorrer bucles de nodos y divisiones
+    !
+    ! Se selecciona el lado b o el d
+    !
+    if( cond_front_v % lado_front == 'b' )then
+       !
+       ind_j = 1
+       !
+    else
+       !
+       ind_j = nj
+       !
+    end if
+    !
+    ! Se realiza un bucle por el n'umero de divisiones del lado a actualizar
+    !
+    do idiv = 1, cond_front_v % ndivis
+       !
+       sel_funcion: select case ( cond_front_v % func_condi( idiv ) )
+          !
+       case( 'cons' )
+          !
+          return
+          !
+       case( 'ramp' )
+          !
+          ! Rampa en tiempo 
+          !
+          pendiente = 1.0_DBL
+          !
+          if( tiempo .le. 1.0_DBL ) pendiente = tiempo
+          !
+          buclenodo_cfvy: do kk = cond_front_v % indice_div(idiv), &
+               &cond_front_v % indice_div(idiv+1)
+             !
+             val_cond_v(kk) = pendiente  !* cond_front_ux % valor_cond(kk)
+             !
+          end do buclenodo_cfvy
+          !
+       case default
+          !
+          return
+          !
+       end select sel_funcion
+       !
+    end do
+    !
+  end subroutine actualiza_cond_frontera_velv_bd
+  !
+  !
+  !*******************************************************************
+  !
+  ! actualiza_cond_frontera_velv_ac
+  !
+  ! Subrutina que actualiza los arreglos para condiciones de frontera
+  ! variables para la ec. de la velocidad u en los lados a y c
+  !
+  !*******************************************************************  
+  subroutine actualiza_cond_frontera_velv_ac(tiempo, cond_front_v, val_cond_v)
+    !
+    implicit none
+    ! $acc routine vector
+    !
+    real(kind=DBL), intent(in) :: tiempo ! valor de tiempo para dependencia temporal
+    !
+    type( tipo_cond_front  ),      intent(inout) :: cond_front_v ! estructura de c.f.
+    !
+    real(kind=DBL), dimension(nj), intent(inout) :: val_cond_v   ! valor a modificar
+    !
+    real(kind=DBL) :: pendiente ! Variable para rampa
+    !
+    integer :: ind_i          ! entero para distinguir el lado a o el c
+    integer :: kk, idiv, ndiv ! enteros para recorrer bucles de nodos y divisiones
+    !
+    ! Se selecciona el lado a o el c
+    !
+    if( cond_front_v % lado_front == 'a' )then
+       !
+       ind_i = 1
+       !
+    else
+       !
+       ind_i = mi+1
+       !
+    end if
+    !
+    ! Se realiza un bucle por el n'umero de divisiones del lado a actualizar
+    !
+    do idiv = 1, cond_front_v % ndivis
+       !
+       sel_funcion: select case ( cond_front_v % func_condi( idiv ) )
+          !
+       case( 'cons' )
+          !
+          return
+          !
+       case( 'ramp' )
+          !
+          ! Rampa de tiempo
+          !
+          pendiente = 1.0_DBL
+          !
+          if( tiempo .le. 1.0_DBL ) pendiente = tiempo
+          !
+          buclenodo_cfvx: do kk = cond_front_v % indice_div(idiv), &
+               &cond_front_v % indice_div(idiv+1)
+             !
+             val_cond_v(kk) = pendiente ! * cond_front_vx % valor_cond(kk)
+             !
+          end do buclenodo_cfvx
+          !
+       case default
+          !
+          return
+          !
+       end select sel_funcion
+       !
+    end do
+    !
+  end subroutine actualiza_cond_frontera_velv_ac
+  !
+  !*******************************************************************
+  !
+  ! actualiza_cond_frontera_velu_bd
+  !
+  ! Subrutina que actualiza los arreglos para condiciones de frontera
+  ! variables para la ec. de momento en u para los lados b y d
+  !
+  !*******************************************************************  
+  subroutine actualiza_cond_frontera_velu_bd(tiempo, cond_front_u, val_cond_u)
+    !
+    implicit none
+    ! $acc routine vector
+    !
+    real(kind=DBL), intent(in) :: tiempo ! valor de tiempo para dependencia temporal
+    !
+    type( tipo_cond_front  ),      intent(inout) :: cond_front_u ! estructura de c.f.
+    !
+    real(kind=DBL), dimension(mi), intent(inout) :: val_cond_u   ! valor a modificar
+    !
+    real(kind=DBL) :: pendiente ! Variable para rampa
+    !
+    integer :: ind_j          ! entero para distinguir el lado b o el d
+    integer :: kk, idiv, ndiv ! enteros para recorrer bucles de nodos y divisiones
+    !
+    ! Se selecciona el lado b o el d
+    !
+    if( cond_front_u % lado_front == 'b' )then
+       !
+       ind_j = 1
+       !
+    else
+       !
+       ind_j = nj+1
+       !
+    end if
+    !
+    ! Se realiza un bucle por el n'umero de divisiones del lado a actualizar
+    !
+    do idiv = 1, cond_front_u % ndivis
+       !
+       sel_funcion: select case ( cond_front_u % func_condi( idiv ) )
+          !
+       case( 'cons' )
+          !
+          return
+          !
+       case( 'ramp' )
+          !
+          ! Rampa en tiempo 
+          !
+          pendiente = 1.0_DBL
+          !
+          if( tiempo .le. 1.0_DBL ) pendiente = tiempo
+          !
+          buclenodo_cfuy: do kk = cond_front_u % indice_div(idiv), &
+               &cond_front_u % indice_div(idiv+1)
+             !
+             val_cond_u(kk) = pendiente !* cond_front_ux % valor_cond(kk)
+             !
+          end do buclenodo_cfuy
+          !
+       case default
+          !
+          return
+          !
+       end select sel_funcion
+       !
+    end do
+    !
+  end subroutine actualiza_cond_frontera_velu_bd
+  !
+  !
+  !*******************************************************************
+  !
+  ! actualiza_cond_frontera_velu_ac
+  !
+  ! Subrutina que actualiza los arreglos para condiciones de frontera
+  ! variables para la ec. de la velocidad u en los lados a y c
+  !
+  !*******************************************************************  
+  subroutine actualiza_cond_frontera_velu_ac(tiempo, cond_front_u, val_cond_u)
+    !
+    implicit none
+    ! $acc routine vector
+    !
+    real(kind=DBL), intent(in) :: tiempo ! valor de tiempo para dependencia temporal
+    !
+    type( tipo_cond_front  ),        intent(inout) :: cond_front_u ! estructura de c.f.
+    !
+    real(kind=DBL), dimension(nj+1), intent(inout) :: val_cond_u   ! valor a modificar
+    !
+    real(kind=DBL) :: pendiente ! Variable para rampa
+    !
+    integer :: ind_i          ! entero para distinguir el lado a o el c
+    integer :: kk, idiv, ndiv ! enteros para recorrer bucles de nodos y divisiones
+    !
+    ! Se selecciona el lado a o el c
+    !
+    if( cond_front_u % lado_front == 'a' )then
+       !
+       ind_i = 1
+       !
+    else
+       !
+       ind_i = mi
+       !
+    end if
+    !
+    ! Se realiza un bucle por el n'umero de divisiones del lado a actualizar
+    !
+    do idiv = 1, cond_front_u % ndivis
+       !
+       sel_funcion: select case ( cond_front_u % func_condi( idiv ) )
+          !
+       case( 'cons' )
+          !
+          return
+          !
+       case( 'ramp' )
+          !
+          ! Rampa de tiempo
+          !
+          pendiente = 1.0_DBL
+          !
+          if( tiempo .le. 1.0_DBL ) pendiente = tiempo
+          !
+          buclenodo_cfux: do kk = cond_front_u % indice_div(idiv), &
+               &cond_front_u % indice_div(idiv+1)
+             !
+             val_cond_u(kk) = pendiente !* cond_front_tx % valor_cond(kk)
+             !
+          end do buclenodo_cfux
+          !
+       case default
+          !
+          return
+          !
+       end select sel_funcion
+       !
+    end do
+    !
+  end subroutine actualiza_cond_frontera_velu_ac
+  !
+  !*******************************************************************
+  !
   ! condicion_inicial_uv
   !
   ! Subrutina que inicializa los arreglos para u, v y p de acuerdo a
