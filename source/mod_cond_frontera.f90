@@ -29,9 +29,9 @@ MODULE cond_frontera
      ! requieren m\'as es posible aumentar las dimensiones de los arreglos o crear
      ! un puntero asignable (allocatable)
      ! 
-     character(len=1)                :: lado_front  ! Se usan 4 lados en 2D: a,b,c,d
+     integer                         :: lado_front  ! Se usan 4 lados en 2D: a(1),b(2),c(3),d(4)
      integer                         :: ndivis      ! n'umero de divisiones
-     character(len=4), dimension(15) :: tipo_condi  ! tipo de condici\'on de frontera
+     integer, dimension(15)          :: tipo_condi  ! tipo de condici\'on de frontera (0/1)
      real(kind=DBL), dimension(15)   :: valor_cond  ! valor de la condici\'on de frontera
      integer, dimension(14)          :: indice_div  ! indices iniciales de las divisiones
      !
@@ -51,9 +51,9 @@ contains
     !
     class( tipo_cond_front), intent(inout) :: cond_front_uu
     !
-    cond_front_uu % lado_front = 'z'
+    cond_front_uu % lado_front =  0
     cond_front_uu % ndivis     =  0
-    cond_front_uu % tipo_condi = 'desc'
+    cond_front_uu % tipo_condi = -1
     cond_front_uu % valor_cond =  0.0_DBL
     cond_front_uu % indice_div = -14
     !
@@ -128,13 +128,19 @@ contains
              !
              read(111,*) x0, x1, tipo_condicion, valor
              !
+             !
              write(*,form37) "    Tipo ", tipo_condicion, &
                   &" entre ", x0, " y ", x1," en lado ", lado
              !
-             cond_front_uua % lado_front     = 'a'
+             cond_front_uua % lado_front     = 1
              cond_front_uua % ndivis         = divisiones
-             cond_front_uua % tipo_condi(jj) = tipo_condicion
              cond_front_uua % valor_cond(jj) = valor
+             !
+             if(tipo_condicion=='diri')then
+               cond_front_uua % tipo_condi(jj) = 0
+             elseif(tipo_condicion=='neum')then
+               cond_front_uua % tipo_condi(jj) = 1
+             end if
              !
              indices_conda: do kk = 1, nn
                 !
@@ -159,10 +165,15 @@ contains
              write(*,form37) "    Tipo ", tipo_condicion, &
                   &" entre ", x0, " y ", x1," en lado ", lado
              !
-             cond_front_uub % lado_front     = 'b'
+             cond_front_uub % lado_front     = 2
              cond_front_uub % ndivis         = divisiones
-             cond_front_uub % tipo_condi(jj) = tipo_condicion
              cond_front_uub % valor_cond(jj) = valor
+             !
+             if(tipo_condicion=='diri')then
+               cond_front_uub % tipo_condi(jj) = 0
+             elseif(tipo_condicion=='neum')then
+               cond_front_uub % tipo_condi(jj) = 1
+             end if
              !
              indices_condb: do kk = 1, mm
                 !
@@ -187,10 +198,15 @@ contains
              write(*,form37) "    Tipo ", tipo_condicion, &
                   &" entre ", x0, " y ", x1," en lado ", lado
              !
-             cond_front_uuc % lado_front     = 'c'
+             cond_front_uuc % lado_front     = 3
              cond_front_uuc % ndivis         = divisiones
-             cond_front_uuc % tipo_condi(jj) = tipo_condicion
              cond_front_uuc % valor_cond(jj) = valor
+             !
+             if(tipo_condicion=='diri')then
+               cond_front_uuc % tipo_condi(jj) = 0
+             else if(tipo_condicion=='neum')then
+               cond_front_uuc % tipo_condi(jj) = 1
+             end if
              !
              indices_condc: do kk = 1, nn
                 !
@@ -216,10 +232,15 @@ contains
              write(*,form37) "    Tipo ", tipo_condicion, &
                   &" entre ", x0, " y ", x1," en lado ", lado
              !
-             cond_front_uud % lado_front     = 'd'
+             cond_front_uud % lado_front     = 4
              cond_front_uud % ndivis         = divisiones
-             cond_front_uud % tipo_condi(jj) = tipo_condicion
              cond_front_uud % valor_cond(jj) = valor
+             !
+             if(tipo_condicion=='diri')then
+               cond_front_uud % tipo_condi(jj) = 0
+             elseif(tipo_condicion=='neum')then
+               cond_front_uud % tipo_condi(jj) = 1
+             end if
              !
              indices_condd: do kk = 1, mm
                 !
@@ -257,9 +278,9 @@ contains
        & kk,ll,               &
        & au_o )
     !
-    !$acc routine seq
     !
     implicit none
+    !$omp declare target
     !
     class( tipo_cond_front ), intent(in)          :: cond_front_uu
     !
@@ -275,11 +296,11 @@ contains
        !
        ! lado a
        !
-    case( 'a' )
+    case( 1 )
        !
        bucle_segmento_au: do ldiv = 1, cond_front_uu % ndivis
           !
-          if( cond_front_uu % tipo_condi(ldiv) == 'diri' )then
+          if( cond_front_uu % tipo_condi(ldiv) == 0 )then
              !
              do jj = cond_front_uu % indice_div(ldiv), cond_front_uu % indice_div(ldiv+1)
                 !
@@ -291,7 +312,7 @@ contains
                 ! print*, "DEBUG: Dirichlet en a"
              end do
              !
-          else if( cond_front_uu % tipo_condi(ldiv) == 'neum' )then
+          else if( cond_front_uu % tipo_condi(ldiv) == 1 )then
              !
              ! print*, "DEBUG: ", cond_front_uu % valor_cond(ldiv)
              do jj = cond_front_uu % indice_div(ldiv), cond_front_uu % indice_div(ldiv+1)
@@ -310,11 +331,11 @@ contains
        !
        ! lado b
        !
-    case( 'b' )
+    case( 2 )
        !
        bucle_segmento_bu: do ldiv = 1, cond_front_uu % ndivis
           !
-          if( cond_front_uu % tipo_condi(ldiv) == 'diri' )then
+          if( cond_front_uu % tipo_condi(ldiv) == 0 )then
              !
              do jj = cond_front_uu % indice_div(ldiv), cond_front_uu % indice_div(ldiv+1)
                 !
@@ -326,7 +347,7 @@ contains
                 ! print*, "DEBUG: Dirichlet en a"
              end do
              !
-          else if( cond_front_uu % tipo_condi(ldiv) == 'neum' )then
+          else if( cond_front_uu % tipo_condi(ldiv) == 1 )then
              !
              ! print*, "DEBUG: ", cond_front_uu % valor_cond(ldiv)
              do jj = cond_front_uu % indice_div(ldiv), cond_front_uu % indice_div(ldiv+1)
@@ -347,11 +368,11 @@ contains
        !
        ! lado c
        !
-    case( 'c' )
+    case( 3 )
        ! 
        ! $acc parallel loop vector
        bucle_segmento_cu: do ldiv = 1, cond_front_uu % ndivis
-          if( cond_front_uu % tipo_condi(ldiv) == 'diri' )then
+          if( cond_front_uu % tipo_condi(ldiv) == 0 )then
              !
              do jj = cond_front_uu % indice_div(ldiv), cond_front_uu % indice_div(ldiv+1)
                 !
@@ -363,7 +384,7 @@ contains
                 ! print*, "DEBUG: Dirichlet en a"
              end do
              !
-          else if( cond_front_uu % tipo_condi(ldiv) == 'neum' )then
+          else if( cond_front_uu % tipo_condi(ldiv) == 1 )then
              !
              do jj = cond_front_uu % indice_div(ldiv), cond_front_uu % indice_div(ldiv+1)
                 !
@@ -383,11 +404,11 @@ contains
        !
        ! lado d
        !
-    case( 'd' )
+    case( 4 )
        ! 
        ! $acc parallel loop vector
        bucle_segmento_du: do ldiv = 1, cond_front_uu % ndivis
-          if( cond_front_uu % tipo_condi(ldiv) == 'diri' )then
+          if( cond_front_uu % tipo_condi(ldiv) == 0 )then
              !
              do jj = cond_front_uu % indice_div(ldiv), cond_front_uu % indice_div(ldiv+1)
                 !
@@ -399,7 +420,7 @@ contains
                 ! print*, "DEBUG: Dirichlet en a"
              end do
              !
-          else if( cond_front_uu % tipo_condi(ldiv) == 'neum' )then
+          else if( cond_front_uu % tipo_condi(ldiv) == 1 )then
              !
              do jj = cond_front_uu % indice_div(ldiv), cond_front_uu % indice_div(ldiv+1)
                 !

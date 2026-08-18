@@ -7,6 +7,8 @@
 !
 PROGRAM IXCHEL2D
   !
+  use omp_lib
+  !
   ! Variables de la malla, volumen de control y factores de interpolaci\'on
   !
   use malla, only : mi, nj, DBL
@@ -86,7 +88,7 @@ PROGRAM IXCHEL2D
   ! Variables auxiliares para bucles y n\'umero de iteraciones
   !
   implicit none
-  include  'omp_lib.h'
+  !include  'omp_lib.h'
   !
   INTEGER :: itera_total,itera,itera_inicial,i_1,paq_itera,itermax
   integer :: iter_ecuaci, iter_ecuaci_max
@@ -379,40 +381,39 @@ PROGRAM IXCHEL2D
      !
      ! Apertura de la regi\'on de datos paralela
      !
-     !$acc data copy(&
-     !$acc &         u(1:mi,1:nj+1),v(1:mi+1,1:nj),                            &
-     !$acc &         pres(1:mi+1,1:nj+1),temp(1:mi+1,1:nj+1),                  &
-     !$acc &         corr_pres(1:mi+1,1:nj+1),                                 &
-     !$acc &         u_ant(1:mi,1:nj+1),v_ant(1:mi+1,1:nj),                    &
-     !$acc &         temp_ant(1:mi+1,1:nj+1),b_o(1:mi+1,1:nj+1)                &
-     !$acc &         )&     
-     !$acc & copyin(&
-     !$acc &        tiempo_inicial,                                            &
-     !$acc &        Resu(1:mi,1:nj+1),                                         &
-     !$acc &        au(1:mi,1:nj+1),av(1:mi+1,1:nj),        &
-     !$acc &        gamma_momen(1:mi+1,1:nj+1),gamma_energ(1:mi+1,1:nj+1),     &
-     !$acc &        deltaxp(1:mi),deltayp(1:nj),deltaxu(1:mi),deltayu(1:nj),   &
-     !$acc &        deltaxv(1:mi),deltayv(1:nj),                               &
-     !$acc &        fexp(1:mi),feyp(1:nj),fexu(1:mi),feyv(1:nj),               &
-     !$acc &        Ri(1:mi,1:nj+1),Riy(1:mi+1,1:nj+1),dt,                     &
-     !$acc &        fuente_con_u(1:mi,1:nj+1), fuente_lin_u(1:mi,1:nj+1),      &
-     !$acc &        fuente_con_v(1:mi+1,1:nj), fuente_lin_v(1:mi+1,1:nj),      &
-     !$acc &        fuente_con_t(1:mi+1,1:nj+1), fuente_lin_t(1:mi+1,1:nj+1),  &
-     !$acc &        rel_vel,conv_u,conv_p,                                     &
-     !$acc &        rel_ener,conv_t,placa_min,placa_max,                       &
-     !$acc &        cond_front_ua,cond_front_ub,cond_front_uc, cond_front_ud,  &
-     !$acc &        cond_front_va,cond_front_vb,cond_front_vc, cond_front_vd,  &
-     !$acc &        cond_front_ta,cond_front_tb,cond_front_tc, cond_front_td   &
-     !$acc &        )&
-     !$acc & create(AI(1:mi+1,1:nj+1),AC(1:mi+1,1:nj+1),                       &
-     !$acc &        AD(1:mi+1,1:nj+1),Rx(1:mi+1,1:nj+1),                       &
-     !$acc &        BS(1:nj+1,1:mi+1),BC(1:nj+1,1:mi+1),                       &
-     !$acc &        BN(1:nj+1,1:mi+1),Ry(1:nj+1,1:mi+1),                       &
-     !$acc &        fu(1:mi,1:nj+1),du(1:mi,1:nj+1),                           &
-     !$acc &        fv(1:mi+1,1:nj),dv(1:mi+1,1:nj),                           &
-     !$acc &        fcorr_pres(1:mi+1,1:nj+1),dcorr_pres(1:mi+1,1:nj+1),       &
-     !$acc &        ftemp(1:mi+1,1:nj+1),dtemp(1:mi+1,1:nj+1)                  &
-     !$acc &)
+     !$omp     target data map(tofrom:                                               &
+     !$omp     u(1:mi,1:nj+1),v(1:mi+1,1:nj),                            &
+     !$omp     pres(1:mi+1,1:nj+1),temp(1:mi+1,1:nj+1),                  &
+     !$omp     corr_pres(1:mi+1,1:nj+1),                                 &
+     !$omp     u_ant(1:mi,1:nj+1),v_ant(1:mi+1,1:nj),                    &
+     !$omp     temp_ant(1:mi+1,1:nj+1),b_o(1:mi+1,1:nj+1))               &
+     !$omp     map(to:                                                   &
+     !$omp     tiempo_inicial,                                           &
+     !$omp     Resu(1:mi,1:nj+1),                                        &
+     !$omp     au(1:mi,1:nj+1),av(1:mi+1,1:nj),                          &
+     !$omp     gamma_momen(1:mi+1,1:nj+1),gamma_energ(1:mi+1,1:nj+1),    &
+     !$omp     deltaxp(1:mi),deltayp(1:nj),deltaxu(1:mi),deltayu(1:nj),  &
+     !$omp     deltaxv(1:mi),deltayv(1:nj),                              &
+     !$omp     fexp(1:mi),feyp(1:nj),fexu(1:mi),feyv(1:nj),              &
+     !$omp     Ri(1:mi,1:nj+1),Riy(1:mi+1,1:nj+1),dt,                    &
+     !$omp     fuente_con_u(1:mi,1:nj+1), fuente_lin_u(1:mi,1:nj+1),     &
+     !$omp     fuente_con_v(1:mi+1,1:nj), fuente_lin_v(1:mi+1,1:nj),     &
+     !$omp     fuente_con_t(1:mi+1,1:nj+1), fuente_lin_t(1:mi+1,1:nj+1), &
+     !$omp     rel_vel,conv_u,conv_p,                                    &
+     !$omp     rel_ener,conv_t,placa_min,placa_max,                      &
+     !$omp     cond_front_ua,cond_front_ub,cond_front_uc, cond_front_ud, &
+     !$omp     cond_front_va,cond_front_vb,cond_front_vc, cond_front_vd, &
+     !$omp     cond_front_ta,cond_front_tb,cond_front_tc, cond_front_td) &
+     !$omp     map(alloc:                                                &
+     !$omp     AI(1:mi+1,1:nj+1),AC(1:mi+1,1:nj+1),                      &
+     !$omp     AD(1:mi+1,1:nj+1),Rx(1:mi+1,1:nj+1),                      &
+     !$omp     BS(1:nj+1,1:mi+1),BC(1:nj+1,1:mi+1),                      &
+     !$omp     BN(1:nj+1,1:mi+1),Ry(1:nj+1,1:mi+1),                      &
+     !$omp     fu(1:mi,1:nj+1),du(1:mi,1:nj+1),                          &
+     !$omp     fv(1:mi+1,1:nj),dv(1:mi+1,1:nj),                          &
+     !$omp     fcorr_pres(1:mi+1,1:nj+1),dcorr_pres(1:mi+1,1:nj+1),      &
+     !$omp     ftemp(1:mi+1,1:nj+1),dtemp(1:mi+1,1:nj+1)                 &
+     !$omp     )
      !
      do kk=1,paq_itera
         !
@@ -429,13 +430,13 @@ PROGRAM IXCHEL2D
            !-------------------------------------------           
            ecuacion_momento: do
               !
-              !$acc parallel loop gang collapse(2)
+              !$omp target teams distribute parallel do collapse(2)
               inicializacion_fu: do jj=1, nj+1
                  do ii = 1, mi
                     fu(ii,jj) = u(ii,jj)
                  end do
               end do inicializacion_fu
-              !
+              !$omp end target teams distribute parallel do
               !------------------------------------------
               !
               ! Se ensambla la ecuaci\'on de momento
@@ -443,12 +444,12 @@ PROGRAM IXCHEL2D
               !
               !---------------------------------------
               !
-              !$acc parallel loop gang collapse(2) !async(stream2)
+              !$omp target teams distribute parallel do collapse(2)
               bucle_uy_direccion_y: do jj = 2, nj
                  !
                  ! Llenado de la matriz
                  !
-                 ! $acc loop vector
+                 !
                  bucle_uy_direccion_x: do ii = 2, mi-1
                     call ensambla_velu_y(deltaxu,deltayu,deltaxp,&
                          &deltayv,fexp,feyp,fexu,gamma_momen,&
@@ -460,6 +461,7 @@ PROGRAM IXCHEL2D
                          &)
                  end do bucle_uy_direccion_x
               end do bucle_uy_direccion_y
+              !$omp end target teams distribute parallel do
               !
               ! Condiciones de frontera para u 
               !
@@ -468,7 +470,7 @@ PROGRAM IXCHEL2D
               ! Region paralela para imponer las cond. de front.
               ! en la GPU
               !
-              !$acc parallel
+              !$omp target
               !-----------------------------------------------
               !
               ! lado b
@@ -487,40 +489,40 @@ PROGRAM IXCHEL2D
                    & nj+1,mi+1,   &
                    & mi,nj+1,     &
                    & au )
-              !$acc end parallel
+              !$omp end target
               !
-              !$acc parallel loop gang           
+              !$omp target teams distribute parallel do
               solucion_momento_uy: do ii = 2, mi-1
                  
                  call tridiagonal(BS(1:nj+1,ii),BC(1:nj+1,ii),BN(1:nj+1,ii),&
                       &Ry(1:nj+1,ii),nj+1)
 
               end do solucion_momento_uy
-              !$acc wait
+              !$omp end target teams distribute parallel do
               !
               !----------------------------------
               !
               ! Actualizaci\'on de la velocidad u
               !
-              !$acc parallel loop gang collapse(2)
+              !$omp target teams distribute parallel do collapse(2)
               do ii = 2, mi-1
                  do jj = 1, nj+1
                     u(ii,jj) = Ry(jj,ii)
                  end do
               end do
-              !$acc wait
+              !$omp end target teams distribute parallel do
               !              
               !------------------------------------------
               !
               ! Se ensambla la ecuaci\'on de momento
               ! para u en direcci\'on x
               !
-              !$acc parallel loop gang collapse(2) 
+              !$omp target teams distribute parallel do collapse(2)
               bucle_ux_direccion_y: do jj = 2, nj
                  !
                  ! Llenado de la matriz
                  !
-                 ! $acc loop vector
+                 !
                  bucle_ux_direccion_x: do ii = 2, mi-1
                     call ensambla_velu_x(deltaxu,deltayu,deltaxp,&
                          &deltayv,fexp,feyp,fexu,gamma_momen,&
@@ -532,6 +534,7 @@ PROGRAM IXCHEL2D
                          &)
                  end do bucle_ux_direccion_x
               end do bucle_ux_direccion_y
+              !$omp end target teams distribute parallel do
               !
               ! Condiciones de frontera para u 
               !
@@ -542,7 +545,7 @@ PROGRAM IXCHEL2D
               !
               ! lado a
               !
-              !$acc parallel
+              !$omp target
               call impone_cond_frontera(cond_front_ua,&
                    & AI,AC,AD,Rx, &
                    & mi+1,nj+1,   &
@@ -558,44 +561,46 @@ PROGRAM IXCHEL2D
                    & mi+1,nj+1,   &
                    & mi,nj+1,     &
                    & au )
-              !$acc end parallel
+              !$omp end target
               !
               !-------------------------------------
               !
               ! Soluci\'on del sistema de ecuaciones
               !
-              !$acc parallel loop gang
+              !$omp target teams distribute parallel do
               solucion_momento_ux: do jj = 2, nj
                  
                  call tridiagonal(AI(1:mi,jj),AC(1:mi,jj),AD(1:mi,jj),Rx(1:mi,jj),mi)
                  
               end do solucion_momento_ux
+              !$omp end target teams distribute parallel do
               !----------------------------------
               !
               ! Actualizaci\'on de la velocidad u
               !
-              !$acc parallel loop gang collapse(2) !async(stream2) wait(stream1)
+              !$omp target teams distribute parallel do collapse(2)
               do jj = 2, nj
                  do ii = 1, mi
                     u(ii,jj) = Rx(ii,jj)
                  end do
               end do
-              !$acc wait
+              !$omp end target teams distribute parallel do
               !
-              !$acc parallel loop gang collapse(2)
+              !$omp target teams distribute parallel do collapse(2)
               inicializacion_fv: do jj=1, nj
                  do ii = 1, mi+1
                     fv(ii,jj) = v(ii,jj)
                  end do
               end do inicializacion_fv
+              !$omp end target teams distribute parallel do
               !---------------------------------------------
               !
               ! Se ensambla la velocidad v en direcci\'on y
               !
               !---------------------------------------------
-              !$acc parallel loop gang collapse(2)
+              !$omp target teams distribute parallel do collapse(2)
               do jj = 2, nj-1
-                 ! $acc loop vector
+                 !
                  do ii = 2, mi
                     call ensambla_velv_y(deltaxv,deltayv,deltaxu,&
                          &deltayp,fexp,feyp,feyv,gamma_momen,&
@@ -607,6 +612,7 @@ PROGRAM IXCHEL2D
                          &)
                  end do
               end do
+              !$omp end target teams distribute parallel do
               !
               ! Condiciones de frontera para v
               !
@@ -618,7 +624,7 @@ PROGRAM IXCHEL2D
               !
               ! lado b
               !
-              !$acc parallel              
+              !$omp target
               call impone_cond_frontera(cond_front_vb,&
                    & BS,BC,BN,Ry, &
                    & nj+1,mi+1,   &
@@ -645,32 +651,32 @@ PROGRAM IXCHEL2D
                    & nj+1,mi+1,   &
                    & mi+1,nj,     &
                    & av )         
-              !$acc end parallel
+              !$omp end target
               !
-              !$acc parallel loop gang ! async(stream2)
+              !$omp target teams distribute parallel do
               solucion_momento_vy: do ii = 2, mi
 
                  call tridiagonal(BS(1:nj,ii),BC(1:nj,ii),BN(1:nj,ii),Ry(1:nj,ii),nj)
                 
               end do solucion_momento_vy
-              !$acc wait
+              !$omp end target teams distribute parallel do
               !----------------------------------
               !
               ! Actualizaci\'on de la velocidad v
               !
-              !$acc parallel loop gang collapse(2) !async(stream1) wait(stream2)
+              !$omp target teams distribute parallel do collapse(2)
               do ii = 2, mi
                  do jj = 1, nj
                     v(ii,jj) = Ry(jj,ii)
                  end do
               end do
-              !$acc wait
+              !$omp end target teams distribute parallel do
               !
               !---------------------------
               !
               ! Se ensambla la velocidad v en direcci\'on x
               !
-              !$acc parallel loop gang collapse(2)
+              !$omp target teams distribute parallel do collapse(2)
               do jj = 2, nj-1
                  ! $acc loop vector
                  do ii = 2, mi
@@ -684,7 +690,7 @@ PROGRAM IXCHEL2D
                          &)
                  end do
               end do
-              ! $acc end parallel
+              !$omp end target teams distribute parallel do
               !
               ! Condiciones de frontera para v
               !
@@ -695,7 +701,7 @@ PROGRAM IXCHEL2D
               ! 
               ! lado a
               !
-              !$acc parallel
+              !$omp target
               call impone_cond_frontera(cond_front_va,&
                    & AI,AC,AD,Rx, &
                    & mi+1,nj+1,   &
@@ -711,36 +717,36 @@ PROGRAM IXCHEL2D
                    & mi+1,nj+1,   &
                    & mi+1,nj,     &
                    & av )            
-              !$acc end parallel
+              !$omp end target
               !
               !------------------------------------
               !
               ! Soluci\'on de las ecs. de momento v
               !
-              !$acc parallel loop gang !async(stream1)  !wait(stream2)
+              !$omp target teams distribute parallel do
               solucion_momento_vx: do jj = 2, nj-1
 
                  call tridiagonal(AI(1:mi+1,jj),AC(1:mi+1,jj),AD(1:mi+1,jj),&
                       &Rx(1:mi+1,jj),mi+1)
                  
               end do solucion_momento_vx
-              !
+              !$omp end target teams distribute parallel do
               !----------------------------------
               !
               ! Actualizaci\'on de la velocidad v
               !
-              !$acc parallel loop gang collapse(2) !async(stream1) wait(stream2)
+              !$omp target teams distribute parallel do collapse(2)
               do jj = 2, nj-1
                  do ii = 1, mi+1
                     v(ii,jj) = Rx(ii,jj)
                  end do
               end do
-              !$acc wait
+              !$omp end target teams distribute parallel do
               !
               ! error de la ecuacion de momento
               !
               error = 0.0_DBL
-              !$acc parallel loop gang collapse(2) reduction(+:error) ! async(stream1)
+              !$omp target teams distribute parallel do collapse(2) reduction(+:error)
               calculo_diferencias_dv: do jj=2, nj-1
                  do ii = 2, mi
 
@@ -748,6 +754,7 @@ PROGRAM IXCHEL2D
 
                  end do
               end do calculo_diferencias_dv
+              !$omp end target teams distribute parallel do
               ! error = sqrt(error)
               !
               ! Criterio de convergencia de la velocidad
@@ -775,23 +782,25 @@ PROGRAM IXCHEL2D
            !-----------------------------------------
            !-----------------------------------------
            !
-           !$acc parallel loop gang collapse(2)
+           !$omp target teams distribute parallel do collapse(2)
            inicializa_corrector_presion: do jj = 1, nj+1
               do ii = 1, mi+1
                  corr_pres(ii,jj) = 0.0_DBL
                  fcorr_pres(ii,jj)= 0.0_DBL
               end do
            end do inicializa_corrector_presion
+           !$omp end target teams distribute parallel do
            !
            correccion_presion: do
               !
-              !$acc parallel loop gang collapse(2)
+              !$omp target teams distribute parallel do collapse(2) &
+              !$omp map(from: fcorr_pres) map(to:corr_pres)
               inicializa_fcorr_press: do jj=2, nj
                  do ii = 2, mi
                     fcorr_pres(ii,jj) = corr_pres(ii,jj)
                  end do
               end do inicializa_fcorr_press
-              !
+              !$omp end target teams distribute parallel do
               !---------------------------------------------------
               !frontera inmersa
               !
@@ -800,9 +809,9 @@ PROGRAM IXCHEL2D
               !
               ! Se ensambla la ecuaci\'on de la presi\'on en y
               !
-              !$acc parallel loop gang collapse(2)
+              !$omp target teams distribute parallel do collapse(2)
               do ii = 2, mi
-                 ! $acc loop vector
+                 !
                  do jj = 2, nj
                     call ensambla_corr_pres_y(deltaxp,deltayp,&
                          &deltaxu,deltayv,&
@@ -812,11 +821,12 @@ PROGRAM IXCHEL2D
                          &ii,jj)
                  end do
               end do
+              !$omp end target teams distribute parallel do
               !-------------------------
               !
               ! Condiciones de frontera
               !AC_o
-              !$acc parallel loop vector !async(stream1)
+              !$omp target teams distribute parallel do
               bucle_direccionxe: do ii = 2, mi
                  !***********************
                  !Condiciones de frontera
@@ -828,7 +838,7 @@ PROGRAM IXCHEL2D
                  BS(nj+1,ii)  = 0.0_DBL
                  Ry(nj+1,ii)  = 0.0_DBL
               end do bucle_direccionxe
-              !
+              !$omp end target teams distribute parallel do
               !---------------------------------------------------
               !
               ! imponer correccion de la presion en frontera inmersa
@@ -839,33 +849,33 @@ PROGRAM IXCHEL2D
               ! Soluci\'on de la correcci\'on de la presi\'on en y
               !
               !
-              !$acc parallel loop gang ! async(stream2)
+              !$omp target teams distribute parallel do
               solucion_presion_y: do ii = 2, mi
 
                  call tridiagonal(BS(1:nj+1,ii),BC(1:nj+1,ii),BN(1:nj+1,ii),&
                       &Ry(1:nj+1,ii),nj+1)
   
               end do solucion_presion_y
-              !$acc wait
+              !$omp end target teams distribute parallel do
               !----------------------------------------------------
               !
               ! Actualizaci\'on del corrector de la presi\'on en y
               !
-              !$acc parallel loop gang collapse(2) !async(stream1) wait(stream2)
+              !$omp target teams distribute parallel do collapse(2)
               do ii = 2, mi
                  do jj = 1, nj+1
                     corr_pres(ii,jj) = Ry(jj,ii)
                  end do
               end do
-              !$acc wait
+              !$omp end target teams distribute parallel do
               !
               !-----------------------------------------------
               !
               ! Se ensambla la ecuaci\'on de la presi\'on en x
               !
-              !$acc parallel loop gang collapse(2)
+              !$omp target teams distribute parallel do collapse(2)
               do jj = 2, nj
-                 ! $acc loop vector
+                 !
                  do ii = 2, mi
                     call ensambla_corr_pres_x(deltaxp,deltayp,&
                          &deltaxu,deltayv,&
@@ -875,8 +885,9 @@ PROGRAM IXCHEL2D
                          &jj,ii)
                  end do
               end do
+              !$omp end target teams distribute parallel do
               !
-              !$acc parallel loop vector
+              !$omp target teams distribute parallel do
               do jj = 2, nj
                  !------------------------
                  ! Condiciones de frontera
@@ -888,7 +899,7 @@ PROGRAM IXCHEL2D
                  AC(mi+1,jj) = 1.0_DBL
                  Rx(mi+1,jj) = 0.0_DBL
               end do
-              !
+              !$omp end target teams distribute parallel do
               !---------------------------------------------------
               !
               ! imponer correccion de la presion en frontera inmersa
@@ -898,33 +909,33 @@ PROGRAM IXCHEL2D
               !
               ! Soluci\'on de la correcci\'on de la presi\'on en x
               !       
-              !$acc parallel loop gang
+              !$omp target teams distribute parallel do
               solucion_presion_x: do jj = 2, nj
 
                  call tridiagonal(AI(1:mi+1,jj),AC(1:mi+1,jj),AD(1:mi+1,jj),&
                       &Rx(1:mi+1,jj),mi+1)
                  
               end do solucion_presion_x
-              !$acc wait
+              !$omp end target teams distribute parallel do
               !
               !----------------------------------------------------
               !
               ! Actualizaci\'on del corrector de la presi\'on en x
               !
-              !$acc parallel loop gang collapse(2)
+              !$omp target teams distribute parallel do collapse(2)
               do jj = 2, nj
                  do ii = 1, mi+1
                     corr_pres(ii,jj) = Rx(ii,jj)
                  end do
               end do
-              !$acc wait
+              !$omp end target teams distribute parallel do
               !
               ! C\'alculo de diferencias y criterio de convergencia
               !
               error = 0.0_DBL
               maxbo = 0.0_DBL
               !
-              !$acc parallel loop gang collapse(2) reduction(+:error)
+              !$omp target teams distribute parallel do collapse(2) reduction(+:error)
               calculo_dif_corr_pres: do jj=2, nj
                  do ii=2, mi
 
@@ -933,9 +944,10 @@ PROGRAM IXCHEL2D
 
                  end do
               end do calculo_dif_corr_pres
+              !$omp end target teams distribute parallel do
               ! error=sqrt(error)
               !
-              !$acc parallel loop gang collapse(2) reduction(max:maxbo)
+              !$omp target teams distribute parallel do collapse(2) reduction(max:maxbo)
               calculo_dif_maxbo: do jj=2, nj
                  do ii=2, mi
 
@@ -943,13 +955,14 @@ PROGRAM IXCHEL2D
                     
                  end do
               end do calculo_dif_maxbo
+              !$omp end target teams distribute parallel do
               ! maxbo = sqrt(maxbo)
               !
               !-----------------------------------------------------
               !
               ! Critero de convergencia del corrector de la presi'on
               !
-              ! $acc wait
+              !
               if( error<conv_p )then
                  !write(*,*)"PRES: conver ", error," con ",iter_ecuaci," iteraciones"
                  iter_ecuaci = 0
@@ -964,23 +977,23 @@ PROGRAM IXCHEL2D
               end if
               !
            end do correccion_presion
-           !$acc wait
+           !
            !--------------------------------------------
            !
            ! Se corrige la presion
            !
-           !$acc parallel loop gang collapse(2)
+           !$omp target teams distribute parallel do collapse(2)
            do jj = 2, nj
               do ii = 2, mi
                  pres(ii,jj) = pres(ii,jj) + 0.6_DBL*corr_pres(ii,jj)
               end do
            end do
-           !
+           !$omp end target teams distribute parallel do
            !---------------------------------
            !
            ! Se corrigen las velocidades
            !
-           !$acc parallel loop gang collapse(2)
+           !$omp target teams distribute parallel do collapse(2)
            do jj = 2, nj-1
               do ii = 2, mi-1
                  u(ii,jj) = u(ii,jj)+deltayu(jj)*&
@@ -989,19 +1002,21 @@ PROGRAM IXCHEL2D
                       &(corr_pres(ii,jj)-corr_pres(ii,jj+1))/av(ii,jj)
               end do
            end do
+           !$omp end target teams distribute parallel do
            !
-           !$acc parallel loop vector
+           !$omp target teams distribute parallel do
            do ii = 2, mi-1
               u(ii,nj) = u(ii,nj)+deltayu(nj)*&
                    &(corr_pres(ii,nj)-corr_pres(ii+1,nj))/au(ii,nj)
            end do
+           !$omp end target teams distribute parallel do
            !
-           !$acc parallel loop vector
+           !$omp target teams distribute parallel do
            do jj = 2, nj-1
               v(mi,jj) = v(mi,jj)+deltaxv(mi)*&
                    &(corr_pres(mi,jj)-corr_pres(mi,jj+1))/av(mi,jj)
            end do
-           !$acc wait
+           !$omp end target teams distribute parallel do
            !
            !--------------------------------------------------
            !--------------------------------------------------
@@ -1012,20 +1027,20 @@ PROGRAM IXCHEL2D
            !--------------------------------------------------
            solucion_energia: do
               !
-              !$acc parallel loop gang collapse(2) !async(stream2)
+              !$omp target teams distribute parallel do collapse(2)
               inicializacion_ftemp: do jj=2, nj
                  do ii = 2, mi
                     ftemp(ii,jj) = temp(ii,jj)
                  end do
               end do inicializacion_ftemp
-              !
+              !$omp end target teams distribute parallel do
               !------------------------------------------
               !
               ! Se ensambla la ecuaci\'on de la energ\'ia en y
               !
-              !$acc parallel loop gang collapse(2)
+              !$omp target teams distribute parallel do collapse(2)
               do jj = 2, nj
-                 ! $acc loop vector
+                 !
                  do ii = 2, mi
                     call ensambla_energia_y(deltaxp,deltayp,&
                          &deltaxu,deltayv,fexu,feyv,gamma_energ,&
@@ -1038,7 +1053,7 @@ PROGRAM IXCHEL2D
                          &)
                  end do
               end do
-              !
+              !$omp end target teams distribute parallel do
               !-----------------------------------------------
               !
               ! Condiciones de frontera
@@ -1051,7 +1066,7 @@ PROGRAM IXCHEL2D
               !------------
               ! lado b
               !
-              !$acc parallel
+              !$omp target
               call impone_cond_frontera(cond_front_tb,&
                    & BS,BC,BN,Ry, &
                    & nj+1,mi+1,   &
@@ -1064,39 +1079,39 @@ PROGRAM IXCHEL2D
                    & BS,BC,BN,Ry, &
                    & nj+1,mi+1,   &
                    & mi+1,nj+1)
-              !$acc end parallel
+              !$omp end target
               !---------------------------------------------
               !
               ! Soluci\'on de la ecuaci\'on de la energ\'ia en y
               !
-              !$acc parallel loop gang !async(stream1)
+              !$omp target teams distribute parallel do
               solucion_energia_y: do ii = 2, mi
 
                  call tridiagonal(BS(1:nj+1,ii),BC(1:nj+1,ii),BN(1:nj+1,ii),&
                       &Ry(1:nj+1,ii),nj+1)
 
               end do solucion_energia_y
-              !$acc wait
+              !$omp end target teams distribute parallel do
               !
               !----------------------------------------
               !
               ! Actualizacion de la energia
               !
-              !$acc parallel loop gang collapse(2)
+              !$omp target teams distribute parallel do collapse(2)
               do ii = 2, mi
                  do jj = 1, nj+1
                     temp(ii,jj) = Ry(jj,ii)
                  end do
               end do
-              !$acc wait
+              !$omp end target teams distribute parallel do
               !
               !-----------------------------------------------
               !
               ! Se ensambla la ecuaci\'on de la energ\'ia en x
               !
-              !$acc parallel loop gang collapse(2)
+              !$omp target teams distribute parallel do collapse(2)
               do jj = 2, nj
-                 ! $acc loop vector
+                 !
                  do ii = 2, mi
                     call ensambla_energia_x(deltaxp,deltayp,&
                          &deltaxu,deltayv,fexu,feyv,gamma_energ,&
@@ -1109,7 +1124,7 @@ PROGRAM IXCHEL2D
                          &)
                  end do
               end do
-              !
+              !$omp end target teams distribute parallel do
               !------------------------------------------
               !
               ! Condiciones de frontera
@@ -1123,7 +1138,7 @@ PROGRAM IXCHEL2D
               !
               ! lado a
               !
-              !$acc parallel
+              !$omp target
               call impone_cond_frontera(cond_front_ta,&
                    & AI,AC,AD,Rx, &
                    & mi+1,nj+1,   &
@@ -1136,31 +1151,31 @@ PROGRAM IXCHEL2D
                    & AI,AC,AD,Rx, &
                    & mi+1,nj+1,   &
                    & mi+1,nj+1)
-              !$acc end parallel
+              !$omp end target
               !
               !---------------------------------------------
               !
               ! Soluci\'on de la ecuaci\'on de la energ\'ia en x
               !
-              !$acc parallel loop gang 
+              !$omp target teams distribute parallel do
               solucion_energia_x: do jj = 2, nj
 
                  call tridiagonal(AI(1:mi+1,jj),AC(1:mi+1,jj),AD(1:mi+1,jj),&
                       &Rx(1:mi+1,jj),mi+1)
 
               end do solucion_energia_x
-              !
+              !$omp end target teams distribute parallel do
               !----------------------------------------
               !
               ! Actualizacion de la energia
               !
-              !$acc parallel loop gang collapse(2)
+              !$omp target teams distribute parallel do collapse(2)
               do jj = 2, nj
                  do ii = 1, mi+1
                     temp(ii,jj) = Rx(ii,jj)
                  end do
               end do
-              !$acc wait
+              !$omp end target teams distribute parallel do
               !
               !----------------------------------------
               !
@@ -1168,7 +1183,7 @@ PROGRAM IXCHEL2D
               !
               error = 0.0_DBL
               !
-              !$acc parallel loop gang collapse(2) reduction(+:error)
+              !$omp target teams distribute parallel do collapse(2) reduction(+:error)
               calculo_diferencias_dtemp: do jj = 2, nj
                  do ii = 2, mi
                     error = error + dabs(temp(ii,jj)-ftemp(ii,jj))*&
@@ -1176,13 +1191,13 @@ PROGRAM IXCHEL2D
                  end do
               end do calculo_diferencias_dtemp
               ! error = sqrt(error)
-              !
+              !$omp end target teams distribute parallel do
               !
               !------------------------------------------
               !
               ! Criterio de convergencia de la energ\'ia
               !
-              !$acc wait
+              !
               if( error < conv_t )then
                  iter_ecuaci = 0
                  ! write(*,*) 'temp', error
@@ -1208,7 +1223,7 @@ PROGRAM IXCHEL2D
            !--------------------------------------------
            !--------------------------------------------
            !
-           !$acc parallel loop gang collapse(2)
+           !$omp target teams distribute parallel do collapse(2)
            bucle_residuo_direccion_y: do jj = 2, nj
               !
               ! Llenado de la matriz
@@ -1226,14 +1241,14 @@ PROGRAM IXCHEL2D
               end do bucle_residuo_direccion_x
               !
            end do bucle_residuo_direccion_y
-           !$acc wait
+           !$omp end target teams distribute parallel do
            !
            !--------------------------------
            !
            ! residuo del algoritmo
            !
            residuo = 0.0_DBL
-           !$acc parallel loop collapse(2) reduction(max:residuo) !async(stream1)
+           !$omp target teams distribute parallel do collapse(2) reduction(max:residuo)
            calculo_maximo_residuou: do jj=2, nj
               do ii = 2, mi-1
                  residuo = max(residuo, dabs(Resu(ii,jj)) )
@@ -1241,8 +1256,8 @@ PROGRAM IXCHEL2D
               end do
            end do calculo_maximo_residuou
            ! residuo = sqrt(residuo)
+           !$omp end target teams distribute parallel do
            !
-           !$acc wait
            if ( maxbo<conv_paso .and. residuo<conv_resi)then
               !
               iter_simple = iter_simple + 1
@@ -1294,33 +1309,35 @@ PROGRAM IXCHEL2D
         !
         ! Se actualizan los  arreglos para paso de tiempo anterior
         !
-        !$acc parallel loop gang collapse(2) !async(stream1)
+        !$omp target teams distribute parallel do collapse(2)
         do jj=1, nj+1
            do ii=1, mi+1
               temp_ant(ii,jj) = temp(ii,jj)
            end do
         end do
+        !$omp end target teams distribute parallel do
         !
-        !$acc parallel loop gang collapse(2) !async(stream1)
+        !$omp target teams distribute parallel do collapse(2)
         do jj=1, nj+1
            do ii=1, mi
               u_ant(ii,jj) = u(ii,jj)
            end do
         end do
+        !$omp end target teams distribute parallel do
         !
-        !$acc parallel loop gang collapse(2) !async(stream2)
+        !$omp target teams distribute parallel do collapse(2)
         do jj=1, nj
            do ii=1, mi+1
               v_ant(ii,jj) = v(ii,jj)
            end do
         end do
-        !
+        !$omp end target teams distribute parallel do
      end do
      !--------------------------------------------
      !
      ! Se cierra la regi\'on paralela de datos
      !
-     !$acc end data
+     !$omp end target data
      !
      !*************       termina el paquete de iteraciones
      !*****************************************************

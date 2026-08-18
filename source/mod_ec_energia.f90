@@ -126,7 +126,7 @@ contains
        &ii,jj&
        &)
     implicit none
-    !$acc routine
+    !$omp declare target
     !
     ! Tama\~no del volumen de control
     !
@@ -293,7 +293,7 @@ contains
        &jj,ii&
        &)
     implicit none
-    !$acc routine
+    !$omp declare target
     !
     ! Tama\~no del volumen de control
     !

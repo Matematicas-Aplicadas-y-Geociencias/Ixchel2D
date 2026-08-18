@@ -1,0 +1,1 @@
+amdflang -O3 -fopenmp --offload-arch=gfx1032  mod_malla.f90  mod_cond_frontera.f90 mod_ec_momento.f90 mod_ec_energia.f90 mod_solucionador.f90 mod_postproceso.f90 mod_front_inmersa.f90 ixchel2D.f90 -o ixchel2D-GPU

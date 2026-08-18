@@ -149,7 +149,7 @@ contains
        &AI_o,AC_o,AD_o,Rx_o,au_o,av_o,&
        &jj,ii)
     implicit none
-    !$acc routine
+    !$omp declare target
     !
     ! Tama\~no del volumen de control
     !
@@ -260,7 +260,7 @@ contains
        &BS_o,BC_o,BN_o,Ry_o,au_o,av_o,&
        &ii,jj)
     implicit none
-    !$acc routine
+    !$omp declare target
     !
     ! Tama\~no del volumen de control
     !
@@ -371,7 +371,7 @@ contains
        &ii,jj&
        &)
     implicit none
-    !$acc routine
+    !$omp declare target
     !
     ! Tama\~no del volumen de control
     !
@@ -557,7 +557,7 @@ contains
        &jj,ii&
        &)
     implicit none
-    !$acc routine
+    !$omp declare target
     !
     ! Tama\~no del volumen de control
     !
@@ -741,9 +741,9 @@ contains
        &AI_o,AC_o,AD_o,Rx_o,av_o,&
        &ii,jj&
        &)
-    !$acc routine
     !
     implicit none
+    !$omp declare target
     !
     ! Tama\~no del volumen de control
     !
@@ -930,9 +930,9 @@ contains
        &BS_o,BC_o,BN_o,Ry_o,&
        &jj,ii&
        &)
-    !$acc routine
     !
     implicit none
+    !$omp declare target
     !
     ! Tama\~no del volumen de control
     !
@@ -1112,7 +1112,7 @@ contains
        &Rx_o,&
        &ii,jj)
     implicit none
-    !$acc routine
+    !$omp declare target
     !
     ! Tama\~no del volumen de control
     !

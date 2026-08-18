@@ -24,7 +24,7 @@ contains
   !*******************************************************************
   subroutine tridiagonal(a,b,c,r,n)
     !
-    !$acc routine seq
+    !$omp declare target
     !
     implicit none
     integer, intent(in) :: n
