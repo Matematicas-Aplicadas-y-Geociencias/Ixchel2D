@@ -64,7 +64,7 @@ elseif( GF )
     set(EXEC_NAME IXCHEL2D-multicore)
     
     # Banderas para utilizar OpenAcc con Multicore
-    set(OMP_MULTICORE "-fopenmp -O3")
+    set(OMP_MULTICORE "-fopenmp -foffload=disable -O3")
     
   endif() # cierra opciones de GF
   
