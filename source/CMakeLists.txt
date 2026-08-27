@@ -4,39 +4,89 @@ cmake_minimum_required(VERSION 3.22)
 # Nombre del proyecto y lenguaje de programacion a utilizar
 project(IXCHEL2D LANGUAGES Fortran)
 
+# Configuracion para compilador
+option(GF  "Enable GFORTRAN use"  OFF)
+option(NVF "Enable NVFORTRAN use" OFF)
+
 # Configuracion para usar gpu
 option(GPU "Enable GPU use" OFF)
 
-if(GPU)
-    message(STATUS "Using OpenAcc GPU")
+# Selecciona el compilador
 
+if( NVF )
+  # Especificar el compilador de fortran a utilizar
+  set(CMAKE_Fortran_COMPILER nvfortran)
+
+  if(GPU)
+    message(STATUS "Using OpenAcc GPU")
+    
     # Arquitectura de GPU a utilizar
     set(CUDA_ARCHITECTURE ${TARGET})
     message(STATUS "CUDA Architecture: ${CUDA_ARCHITECTURE}")
-
+    
     # Definir el nombre del ejecutable
     set(EXEC_NAME IXCHEL2D-gpu)
-
+    
     # Banderas para utilizar OpenAcc con GPU
     set(ACC_GPU "-mcmodel=medium -fast -acc=gpu -gpu=${CUDA_ARCHITECTURE} -Minfo=accel")
-else()
+  else()
     message(STATUS "Using OpenAcc MULTICORE")
-
+    
     # Definir el nombre del ejecutable
     set(EXEC_NAME IXCHEL2D-multicore)
-
+    
     # Banderas para utilizar OpenAcc con Multicore
     set(ACC_MULTICORE "-mcmodel=medium -fast -acc=multicore -Minfo=accel")
+    
+  endif() # cierra opciones de nvf
+
+elseif( GF )
+  
+  # Especificar el compilador de fortran a utilizar
+  set(CMAKE_Fortran_COMPILER gfortran)
+    
+  if(GPU)
+    message(STATUS "Using OpenMP GPU")
+      
+    # Arquitectura de GPU a utilizar
+    set(CUDA_ARCHITECTURE ${TARGET})
+    message(STATUS "CUDA Architecture: ${CUDA_ARCHITECTURE}")
+    
+    # Definir el nombre del ejecutable
+    set(EXEC_NAME IXCHEL2D-gpu)
+    
+    # Banderas para utilizar OpenAcc con GPU
+    set(OMP_GPU "-fopenmp -foffload=nvptx-none -O3")
+  else()
+    message(STATUS "Using OpenMP MULTICORE")
+    
+    # Definir el nombre del ejecutable
+    set(EXEC_NAME IXCHEL2D-multicore)
+    
+    # Banderas para utilizar OpenAcc con Multicore
+    set(OMP_MULTICORE "-fopenmp -O3")
+    
+  endif() # cierra opciones de GF
+  
+  
 endif()
 
-# Especificar el compilador de fortran a utilizar
-set(CMAKE_Fortran_COMPILER nvfortran)
-
 # Definir las banderas que va a utilizar el compilador
-if(GPU)
+if( NVF )
+  
+  if(GPU)
     set(CMAKE_Fortran_FLAGS ${ACC_GPU})
-else()
+  else()
     set(CMAKE_Fortran_FLAGS ${ACC_MULTICORE})
+  endif()
+
+elseif( GF )
+
+  if( GPU )
+    set(CMAKE_Fortran_FLAGS ${OMP_GPU})
+  else()
+    set(CMAKE_Fortran_FLAGS ${OMP_MULTICORE})
+  endif()
 endif()
 
 # Variable para listar los archivos fuentes
