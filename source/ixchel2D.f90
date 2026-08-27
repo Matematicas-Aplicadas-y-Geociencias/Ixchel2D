@@ -260,6 +260,8 @@ PROGRAM IXCHEL2D
   ! Verificación de existencia de directorio
   !
   directorio = 'n'//trim(njc)//'m'//trim(mic)//'R'//trim(Rec)//'/info_entrada.out'
+  write(*,*) "Ixchel2D: Se verifica la existencia del directorio: "
+  write(*,*) 'n'//trim(njc)//'m'//trim(mic)//'R'//trim(Rec)
   call postprocesa_parametros(&
        &Ra,&
        &Pr,&
@@ -285,6 +287,9 @@ PROGRAM IXCHEL2D
        &postprocesar,&
        &front_inmersa,&
        &directorio)
+  write(*,*) "Ixchel2D: existencia del directorio "
+  write(*,*) 'n'//trim(njc)//'m'//trim(mic)//'R'//trim(Rec)," verificada"
+  write(*,*) "------------------------------------------------------"
   ! ----------------------------------------------------------------
   !
   ! Lectura de las mallas escalonadas e inicializaci\'on de arreglos
