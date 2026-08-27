@@ -746,7 +746,7 @@ PROGRAM IXCHEL2D
               ! error de la ecuacion de momento
               !
               error = 0.0_DBL
-              !$omp target teams distribute parallel do collapse(2) reduction(+:error)
+              !$omp target teams distribute parallel do map(tofrom:error) reduction(+:error)
               calculo_diferencias_dv: do jj=2, nj-1
                  do ii = 2, mi
 
@@ -773,7 +773,7 @@ PROGRAM IXCHEL2D
               end if
               !            
            end do ecuacion_momento
-           !$acc wait
+           !
            !-----------------------------------------
            !-----------------------------------------
            !
@@ -793,8 +793,8 @@ PROGRAM IXCHEL2D
            !
            correccion_presion: do
               !
-              !$omp target teams distribute parallel do collapse(2) &
-              !$omp map(from: fcorr_pres) map(to:corr_pres)
+              !$omp target teams distribute parallel do collapse(2)
+              ! $omp map(from: fcorr_pres) map(to:corr_pres)
               inicializa_fcorr_press: do jj=2, nj
                  do ii = 2, mi
                     fcorr_pres(ii,jj) = corr_pres(ii,jj)
@@ -935,7 +935,7 @@ PROGRAM IXCHEL2D
               error = 0.0_DBL
               maxbo = 0.0_DBL
               !
-              !$omp target teams distribute parallel do collapse(2) reduction(+:error)
+              !$omp target teams distribute parallel do map(tofrom:error) reduction(+:error)
               calculo_dif_corr_pres: do jj=2, nj
                  do ii=2, mi
 
@@ -945,9 +945,8 @@ PROGRAM IXCHEL2D
                  end do
               end do calculo_dif_corr_pres
               !$omp end target teams distribute parallel do
-              ! error=sqrt(error)
               !
-              !$omp target teams distribute parallel do collapse(2) reduction(max:maxbo)
+              !$omp target parallel do collapse(2) map(tofrom:maxbo) reduction(max:maxbo)
               calculo_dif_maxbo: do jj=2, nj
                  do ii=2, mi
 
@@ -955,8 +954,10 @@ PROGRAM IXCHEL2D
                     
                  end do
               end do calculo_dif_maxbo
-              !$omp end target teams distribute parallel do
-              ! maxbo = sqrt(maxbo)
+              !$omp end target parallel do
+              !
+              !maxbo = sqrt(maxbo)
+              !print*,"DEBUG: ", maxbo
               !
               !-----------------------------------------------------
               !
@@ -1183,7 +1184,7 @@ PROGRAM IXCHEL2D
               !
               error = 0.0_DBL
               !
-              !$omp target teams distribute parallel do collapse(2) reduction(+:error)
+              !$omp target teams distribute parallel do map(tofrom:error) reduction(+:error)
               calculo_diferencias_dtemp: do jj = 2, nj
                  do ii = 2, mi
                     error = error + dabs(temp(ii,jj)-ftemp(ii,jj))*&
@@ -1248,7 +1249,7 @@ PROGRAM IXCHEL2D
            ! residuo del algoritmo
            !
            residuo = 0.0_DBL
-           !$omp target teams distribute parallel do collapse(2) reduction(max:residuo)
+           !$omp target teams distribute parallel do map(tofrom:residuo) reduction(max:residuo)
            calculo_maximo_residuou: do jj=2, nj
               do ii = 2, mi-1
                  residuo = max(residuo, dabs(Resu(ii,jj)) )
